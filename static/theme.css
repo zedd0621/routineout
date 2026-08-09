@@ -92,6 +92,15 @@ input[type=text], input[type=tel], input[type=password], textarea, select {
 input::placeholder, textarea::placeholder { color: var(--muted); }
 input:focus, textarea:focus, select:focus { outline: none; border-color: rgba(226,255,107,0.45); }
 
+/* select는 OS 네이티브 드롭다운(옵션 목록)이 흰 배경으로 뜨는 경우가 많아,
+   위의 어두운 반투명 배경 + 밝은 글자색 조합을 쓰면 옵션 목록에서 흰 배경에
+   흰 글자가 겹쳐 안 보이는 문제가 생긴다. select/option은 배경·글자색을
+   명시적으로 흰 배경 + 검정 글자로 고정해 어떤 환경에서도 가시성을 보장한다. */
+select, select option {
+  background: #ffffff;
+  color: #1a1a1a;
+}
+
 /* — 체크그룹 / 라디오 pill 선택 — */
 .check-group { display: flex; flex-wrap: wrap; gap: 8px; }
 .check-group label {
