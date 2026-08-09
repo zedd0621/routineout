@@ -15,7 +15,7 @@
 
 {% block content %}
 <div class="login-wrap">
-  <form class="card login-card" method="post" action="{{ url_for('tenant_admin_login', tenant=tenant) }}">
+  <form class="card login-card" method="post" action="{{ url_for('login') }}">
     <h1 class="gradient-text">관리자 로그인</h1>
     {% if error %}
     <p class="login-error">{{ error }}</p>

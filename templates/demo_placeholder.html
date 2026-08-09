@@ -3,7 +3,7 @@
 {% block title %}{{ tenant }} 데모 - routineout{% endblock %}
 
 {% block nav %}
-<a href="{{ url_for('tenant_logout', tenant=tenant) }}" class="btn btn-outline">로그아웃</a>
+<a href="{{ url_for('logout') }}" class="btn btn-outline">로그아웃</a>
 {% endblock %}
 
 {% block content %}
