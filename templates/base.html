@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}{{ site_name|default('routineout') }}{% endblock %}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='theme.css') }}">
+<style>
+  .site-nav { display: flex; justify-content: space-between; align-items: center; padding: 18px 28px; }
+  .site-nav .brand { display: flex; align-items: center; gap: 10px; font-size: 17px; font-weight: 700; }
+  .site-nav .brand .logo-box { background: var(--lime-gradient); color: #10160a; font-size: 13px; font-weight: 800; padding: 4px 10px; border-radius: 8px; }
+  .site-nav .nav-links { display: flex; gap: 8px; }
+  .page-wrap { max-width: 1080px; margin: 0 auto; padding: 8px 20px 60px; }
+  {% block extra_style %}{% endblock %}
+</style>
+</head>
+<body>
+
+<div class="site-nav">
+  <div class="brand">
+    <span class="logo-box">{{ brand_short|default('RO') }}</span>
+    <span>{{ site_name|default('routineout') }}</span>
+  </div>
+  <div class="nav-links">
+    {% block nav %}
+    <a href="#" class="btn btn-outline">홈</a>
+    {% endblock %}
+  </div>
+</div>
+
+<div class="page-wrap">
+  {% block content %}
+  <!-- 이 블록 안에 각 페이지 고정 내용이 들어간다 -->
+  {% endblock %}
+</div>
+
+{% block extra_script %}{% endblock %}
+</body>
+</html>

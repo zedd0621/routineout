@@ -1,0 +1,42 @@
+/* 임시 placeholder — 원본 theme.css 전달받으면 교체 예정 */
+:root {
+  --lime-gradient: linear-gradient(135deg, #c6f24e, #8fd94c);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Malgun Gothic", sans-serif;
+  background: #f7f8f5;
+  color: #1a1f16;
+}
+
+.btn {
+  display: inline-block;
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: none;
+  background: var(--lime-gradient);
+  color: #10160a;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid #cfd6c6;
+  color: #1a1f16;
+}
+
+.login-card {
+  background: #fff;
+  border: 1px solid #e5e9de;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+.login-card input {
+  border: 1px solid #cfd6c6;
+  font-size: 14px;
+}
