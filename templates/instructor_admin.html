@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}강사지원 현황 - routineout{% endblock %}
+{% block nav %}
+<a href="{{ url_for('tenant_dashboard', tenant=tenant) }}" class="btn btn-outline">대시보드</a>
+<a href="{{ url_for('logout') }}" class="btn btn-outline">로그아웃</a>
+{% endblock %}
+
+{% block content %}
+<h1 class="gradient-text">강사지원 현황</h1>
+<p style="color: var(--muted);">총 {{ rows|length }}명 · 개인정보는 미팅 화면 노출을 대비해 마스킹 처리됩니다.</p>
+
+<div class="card" style="overflow-x: auto;">
+<table>
+  <thead>
+    <tr><th>이름</th><th>연락처</th><th>구분</th><th>1지망 지역</th><th>지망 내역</th><th></th></tr>
+  </thead>
+  <tbody>
+    {% for row in rows %}
+    <tr>
+      <td>{{ row.name }}</td>
+      <td>{{ row.tel }}</td>
+      <td>{{ row.role }}</td>
+      <td>{{ row.primary_region }}</td>
+      <td>
+        {% for ch in row.choices %}
+          <span class="badge badge-outline">{{ ch.rank }}지망 {{ ch.region }}/{{ ch.org }}</span>
+        {% endfor %}
+      </td>
+      <td>
+        <form method="post" action="{{ url_for('instructor_admin_delete', tenant=tenant, row_id=row.id) }}">
+          <button type="submit" class="btn btn-sm btn-danger">삭제</button>
+        </form>
+      </td>
+    </tr>
+    {% else %}
+    <tr><td colspan="6" style="color: var(--muted);">지원 내역이 없습니다.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}

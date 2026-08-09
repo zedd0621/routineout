@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block title %}센터 개설 문의 - routineout{% endblock %}
+{% block nav %}{% endblock %}
+
+{% block extra_style %}
+  .form-wrap { max-width: 640px; margin: 40px auto; }
+  .form-wrap h1 { margin-bottom: 4px; }
+  .form-wrap .sub { color: var(--muted); font-size: 13px; margin-bottom: 24px; }
+  .form-card { padding: 28px; margin-bottom: 16px; }
+  .form-card .field { margin-bottom: 16px; }
+  .form-card .btn { width: 100%; }
+{% endblock %}
+
+{% block content %}
+<div class="form-wrap">
+  <h1 class="gradient-text">센터 개설 문의</h1>
+  <p class="sub">데모 — 실제 접수는 없으며 aiedu 테넌트 DB에만 저장됩니다.</p>
+
+  <form class="card form-card" method="post">
+    <div class="field">
+      <label for="region">지역 <span class="req">*</span></label>
+      <select id="region" name="region" required>
+        {% for r in regions %}<option value="{{ r }}">{{ r }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="field"><label for="org">기관명</label><input type="text" id="org" name="org" required></div>
+    <div class="field"><label for="addr">주소</label><input type="text" id="addr" name="addr"></div>
+    <div class="field"><label for="manager">담당자</label><input type="text" id="manager" name="manager"></div>
+    <div class="field"><label for="tel">연락처</label><input type="tel" id="tel" name="tel"></div>
+    <div class="field"><label for="room_count">강의실 수</label><input type="text" id="room_count" name="room_count"></div>
+    <div class="field"><label for="room_info">강의실 정보 (수용인원 등)</label><input type="text" id="room_info" name="room_info"></div>
+
+    <div class="field">
+      <label>보유 기기</label>
+      <div class="check-group">
+        {% for d in ['노트북', '빔프로젝터', '스마트TV', '없음'] %}
+        <label><input type="checkbox" name="device" value="{{ d }}"> {{ d }}</label>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="field">
+      <label>교육 대상</label>
+      <div class="check-group">
+        {% for t in ['시니어', '장애인', '청소년', '소상공인'] %}
+        <label><input type="checkbox" name="target" value="{{ t }}"> {{ t }}</label>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="field"><label for="headcount">예상 인원</label><input type="text" id="headcount" name="headcount"></div>
+
+    <div class="field">
+      <label>희망 과정</label>
+      <div class="check-group">
+        {% for course in ['①스마트폰 처음 사용하기', '⑨키오스크와 무인서비스 활용하기', '㉑미술관이 살아있다', '㉵디지털 일자리 준비'] %}
+        <label><input type="checkbox" name="course" value="{{ course }}"> {{ course }}</label>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="field"><label for="recruit">모집 방식</label><input type="text" id="recruit" name="recruit"></div>
+    <div class="field"><label for="recruit_channel">모집 채널</label><input type="text" id="recruit_channel" name="recruit_channel"></div>
+
+    <div class="field">
+      <label>희망 운영월</label>
+      <div class="check-group">
+        {% for m in all_months %}<label><input type="checkbox" name="period" value="{{ m }}"> {{ m }}</label>{% endfor %}
+      </div>
+    </div>
+    <div class="field">
+      <label>희망 요일</label>
+      <div class="check-group">
+        {% for d in all_days %}<label><input type="checkbox" name="day" value="{{ d }}"> {{ d }}</label>{% endfor %}
+      </div>
+    </div>
+    <div class="field">
+      <label>희망 교시</label>
+      <div class="check-group">
+        {% for t in all_times %}<label><input type="checkbox" name="time" value="{{ t }}"> {{ t }}</label>{% endfor %}
+      </div>
+    </div>
+
+    <div class="field">
+      <label>교육버스 필요</label>
+      <div class="check-group">
+        <label><input type="radio" name="edubus" value="Y"> 필요</label>
+        <label><input type="radio" name="edubus" value="N" checked> 불필요</label>
+      </div>
+    </div>
+    <div class="field"><label for="edubus_addr">교육버스 승하차 주소</label><input type="text" id="edubus_addr" name="edubus_addr"></div>
+    <div class="field"><label for="edubus_date">교육버스 희망일</label><input type="text" id="edubus_date" name="edubus_date"></div>
+    <div class="field"><label for="etc">기타 요청사항</label><textarea id="etc" name="etc" rows="3"></textarea></div>
+
+    <button type="submit" class="btn btn-primary">제출</button>
+  </form>
+</div>
+{% endblock %}

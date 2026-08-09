@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block title %}배치 매칭 추천 - routineout{% endblock %}
+{% block nav %}
+<a href="{{ url_for('tenant_dashboard', tenant=tenant) }}" class="btn btn-outline">대시보드</a>
+<a href="{{ url_for('logout') }}" class="btn btn-outline">로그아웃</a>
+{% endblock %}
+
+{% block extra_style %}
+  .select-row { display: flex; gap: 10px; align-items: flex-end; margin-bottom: 20px; flex-wrap: wrap; }
+  .select-row .field { margin: 0; min-width: 200px; }
+  .rec-card { padding: 16px 20px; margin-bottom: 10px; }
+  .rec-card .score { font-size: 22px; font-weight: 700; }
+  .rec-card .script { color: var(--muted); font-size: 13px; margin-top: 8px; }
+  .rec-card ul { margin: 8px 0 0; padding-left: 18px; font-size: 12.5px; color: #cfcfd2; }
+{% endblock %}
+
+{% block content %}
+<h1 class="gradient-text">배치 매칭 추천</h1>
+<p style="color: var(--muted);">확정된 센터를 선택하면 조건에 맞는 강사를 점수순으로 추천합니다.</p>
+
+<form class="select-row" method="get">
+  <div class="field">
+    <label>지역</label>
+    <select id="region-select" name="region" onchange="onRegionChange()">
+      <option value="">지역 선택</option>
+      {% for r in region_centers.keys()|list %}
+      <option value="{{ r }}" {% if r == selected_region %}selected{% endif %}>{{ r }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="field">
+    <label>기관</label>
+    <select id="org-select" name="org"></select>
+  </div>
+  <button type="submit" class="btn btn-primary">추천 보기</button>
+</form>
+
+{% if center_info %}
+<div class="card" style="padding: 20px; margin-bottom: 20px;">
+  <strong>{{ center_info.region }} / {{ center_info.org }}</strong>
+  <div style="color: var(--muted); font-size: 13px; margin-top: 6px;">
+    요구 요일: {{ center_req.days|join(', ') }} · 요구 교시: {{ center_req.times|join(', ') }}
+  </div>
+</div>
+
+{% for r in rec_results %}
+<div class="card rec-card">
+  <div style="display: flex; justify-content: space-between; align-items: center;">
+    <div>
+      <strong>{{ loop.index }}. {{ r.name }}</strong>
+      <span class="badge badge-outline">{{ r.role }}</span>
+      {% if r.direct_apply %}<span class="badge badge-accent">{{ r.direct_apply_rank }}지망</span>{% endif %}
+    </div>
+    <div class="score gradient-text">{{ r.score }}점</div>
+  </div>
+  <div class="script">{{ r.script }}</div>
+  <ul>
+    {% for reason in r.reasons %}<li>{{ reason }}</li>{% endfor %}
+  </ul>
+</div>
+{% else %}
+<p style="color: var(--muted);">해당 센터에 직접 지원한 강사가 없습니다.</p>
+{% endfor %}
+{% endif %}
+
+<script>
+const regionCenters = {{ region_centers_json|safe }};
+const selectedOrg = {{ selected_org|tojson }};
+
+function fillOrgOptions(region, preselect) {
+  const orgSelect = document.getElementById('org-select');
+  orgSelect.innerHTML = '<option value="">기관 선택</option>';
+  (regionCenters[region] || []).forEach(function(org) {
+    const opt = document.createElement('option');
+    opt.value = org;
+    opt.textContent = org;
+    if (org === preselect) opt.selected = true;
+    orgSelect.appendChild(opt);
+  });
+}
+
+function onRegionChange() {
+  const region = document.getElementById('region-select').value;
+  fillOrgOptions(region, '');
+}
+
+const initialRegion = document.getElementById('region-select').value;
+if (initialRegion) fillOrgOptions(initialRegion, selectedOrg);
+</script>
+{% endblock %}

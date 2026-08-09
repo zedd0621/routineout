@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}근무센터 현황 - routineout{% endblock %}
+{% block nav %}
+<a href="{{ url_for('tenant_dashboard', tenant=tenant) }}" class="btn btn-outline">대시보드</a>
+<a href="{{ url_for('logout') }}" class="btn btn-outline">로그아웃</a>
+{% endblock %}
+
+{% block extra_style %}
+  .page-wrap table { margin-top: 20px; }
+  td.wrap { max-width: 220px; white-space: normal; word-break: break-all; }
+{% endblock %}
+
+{% block content %}
+<h1 class="gradient-text">근무센터 현황</h1>
+<p style="color: var(--muted);">총 {{ rows|length }}건 · 배치 확정된 센터만 강사지원/추천에 노출됩니다.</p>
+
+<div class="card" style="overflow-x: auto;">
+<table>
+  <thead>
+    <tr>
+      <th>지역</th><th>기관명</th><th>담당자</th><th>연락처</th>
+      <th>희망요일</th><th>희망교시</th><th>상태</th><th></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for row in rows %}
+    <tr>
+      <td>{{ row['region'] }}</td>
+      <td class="wrap">{{ row['org'] }}</td>
+      <td>{{ row['manager'] }}</td>
+      <td>{{ row['tel'] }}</td>
+      <td>{{ row['day'] }}</td>
+      <td class="wrap">{{ row['time'] }}</td>
+      <td>
+        {% if row['confirmed'] %}
+        <span class="badge badge-accent">확정</span>
+        {% else %}
+        <span class="badge badge-muted">대기</span>
+        {% endif %}
+      </td>
+      <td>
+        <form method="post" action="{{ url_for('center_admin_confirm', tenant=tenant, row_id=row['id']) }}" style="display:inline;">
+          <button type="submit" class="btn btn-sm btn-outline">{{ '확정취소' if row['confirmed'] else '확정' }}</button>
+        </form>
+        <form method="post" action="{{ url_for('center_admin_delete', tenant=tenant, row_id=row['id']) }}" style="display:inline;">
+          <button type="submit" class="btn btn-sm btn-danger">삭제</button>
+        </form>
+      </td>
+    </tr>
+    {% else %}
+    <tr><td colspan="8" style="color: var(--muted);">등록된 센터가 없습니다.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}

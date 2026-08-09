@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}{{ tenant }} 데모 대시보드 - routineout{% endblock %}
+
+{% block nav %}
+<a href="{{ url_for('logout') }}" class="btn btn-outline">로그아웃</a>
+{% endblock %}
+
+{% block extra_style %}
+  .tile-grid { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 24px; }
+  .tile { flex: 1 1 180px; padding: 24px 20px; text-decoration: none; display: block; }
+  .tile h3 { font-size: 15px; margin: 12px 0 6px; color: var(--fg); }
+  .tile p { font-size: 12.5px; color: var(--muted); margin: 0; }
+{% endblock %}
+
+{% block content %}
+<h1 class="gradient-text" style="margin-top: 16px;">{{ tenant }} 데모</h1>
+<p style="color: var(--muted);">고객 미팅용 가상 시연 테넌트 — 모든 데이터는 더미 데이터입니다.</p>
+
+<div class="tile-grid">
+  <a class="card tile" href="{{ url_for('center_admin', tenant=tenant) }}">
+    <span class="badge badge-outline">센터 관리</span>
+    <h3>근무센터 현황</h3>
+    <p>접수된 센터 문의를 확인하고 배치 확정 처리</p>
+  </a>
+  <a class="card tile" href="{{ url_for('instructor_admin', tenant=tenant) }}">
+    <span class="badge badge-outline">강사 관리</span>
+    <h3>강사지원 현황</h3>
+    <p>강사 지원 내역과 희망 지역·요일 확인</p>
+  </a>
+  <a class="card tile" href="{{ url_for('recommendation', tenant=tenant) }}">
+    <span class="badge badge-outline">배치 매칭</span>
+    <h3>센터-강사 추천</h3>
+    <p>센터 요구조건에 맞는 강사 자동 추천</p>
+  </a>
+  <a class="card tile" href="{{ url_for('paycheck_admin', tenant=tenant) }}">
+    <span class="badge badge-outline">급여 관리</span>
+    <h3>급여확인 어드민</h3>
+    <p>강사별 급여 집계, 4대보험 구분, 동의 이력</p>
+  </a>
+  <a class="card tile" href="{{ url_for('payslip_admin', tenant=tenant) }}">
+    <span class="badge badge-outline">명세서 관리</span>
+    <h3>급여명세서 어드민</h3>
+    <p>신청자 목록에서 개별 급여명세서 열람·다운로드</p>
+  </a>
+</div>
+{% endblock %}

@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}급여내역 확인 - routineout{% endblock %}
+{% block nav %}{% endblock %}
+
+{% block extra_style %}
+  .form-wrap { max-width: 640px; margin: 40px auto; }
+  .form-card { padding: 28px; margin-bottom: 20px; }
+  .form-card .field { margin-bottom: 16px; }
+  .form-card .btn { width: 100%; }
+  .error-box { color: var(--danger); font-size: 13px; margin-bottom: 16px; }
+  .total-row { display: flex; justify-content: space-between; align-items: center; padding: 16px 0; border-top: 1px solid var(--card-border); margin-top: 8px; }
+  .total-row .num { font-size: 24px; font-weight: 700; }
+{% endblock %}
+
+{% block content %}
+<div class="form-wrap">
+  <h1 class="gradient-text">급여내역 확인</h1>
+  <p style="color: var(--muted); font-size: 13px;">데모 — 이름/생년월일/연락처 뒤 4자리로 본인확인 후 조회합니다.</p>
+
+  {% if not result %}
+  <form class="card form-card" method="post">
+    {% if error %}<div class="error-box">{{ error }}</div>{% endif %}
+    <div class="field"><label>이름</label><input type="text" name="name" value="{{ form_data.name if form_data else '' }}" required></div>
+    <div class="field"><label>생년월일 (YYYY-MM-DD)</label><input type="text" name="birth" placeholder="1988-06-02" value="{{ form_data.birth if form_data else '' }}" required></div>
+    <div class="field"><label>연락처 뒤 4자리</label><input type="text" name="tel_last4" maxlength="4" required></div>
+    <div class="field">
+      <label>조회 월</label>
+      <select name="target_month" required>
+        {% for m in available_months %}<option value="{{ m }}">{{ m }}</option>{% endfor %}
+      </select>
+    </div>
+    <button type="submit" class="btn btn-primary">조회</button>
+  </form>
+  {% else %}
+  <div class="card form-card">
+    <strong>{{ name }}</strong> · {{ target_month }} · <span class="badge badge-outline">{{ insurance_type }}</span>
+
+    <table style="margin-top: 16px;">
+      <thead><tr><th>날짜</th><th>역할</th><th>근무시간</th><th>강의시간</th><th>일급</th></tr></thead>
+      <tbody>
+        {% for e in entries %}
+        <tr>
+          <td>{{ e.date }} ({{ e.weekday }})</td>
+          <td>{{ e.role }}</td>
+          <td>{{ e.total_hours }}</td>
+          <td>{{ e.lecture_hours }}</td>
+          <td>{{ '{:,}'.format(e.daily_pay) }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    {% if weekly_rows %}
+    <table style="margin-top: 12px;">
+      <thead><tr><th>주간</th><th>주간근로시간</th><th>주휴수당 발생</th><th>금액</th></tr></thead>
+      <tbody>
+        {% for w in weekly_rows %}
+        <tr>
+          <td>{{ w.week_start }} ~ {{ w.week_end }}</td>
+          <td>{{ w.hours }}h</td>
+          <td>{{ '충족' if w.qualified and not w.dup_skipped else '미달' }}</td>
+          <td>{{ '{:,}'.format(w.pay) }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% endif %}
+
+    <div class="total-row">
+      <span>지급 합계</span>
+      <span class="num gradient-text">{{ '{:,}'.format(total_pay) }}원</span>
+    </div>
+
+    <form method="post" action="{{ url_for('paycheck_consent', tenant=tenant) }}">
+      <input type="hidden" name="name" value="{{ name }}">
+      <input type="hidden" name="birth" value="{{ birth }}">
+      <input type="hidden" name="tel_last4" value="{{ tel_last4 }}">
+      <input type="hidden" name="target_month" value="{{ target_month }}">
+      <input type="hidden" name="total_pay" value="{{ total_pay }}">
+      <input type="hidden" name="insurance_type" value="{{ insurance_type }}">
+      <input type="hidden" name="snapshot_json" value='{{ snapshot_json }}'>
+      <div class="field" style="margin-top: 16px;"><label>은행명</label><input type="text" name="bank_name"></div>
+      <div class="field"><label>계좌번호</label><input type="text" name="account_number"></div>
+      <button type="submit" class="btn btn-primary">내역 확인 및 동의</button>
+    </form>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

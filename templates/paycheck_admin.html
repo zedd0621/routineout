@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}급여확인 어드민 - routineout{% endblock %}
+{% block nav %}
+<a href="{{ url_for('tenant_dashboard', tenant=tenant) }}" class="btn btn-outline">대시보드</a>
+<a href="{{ url_for('logout') }}" class="btn btn-outline">로그아웃</a>
+{% endblock %}
+
+{% block extra_style %}
+  .section-title { margin-top: 32px; margin-bottom: 12px; font-size: 15px; color: var(--muted); }
+{% endblock %}
+
+{% block content %}
+<h1 class="gradient-text">급여확인 어드민</h1>
+<p style="color: var(--muted);">집계 대상월: {{ payroll_months|join(', ') if payroll_months else '없음' }} · 개인정보는 마스킹 처리됩니다.</p>
+
+<div class="card" style="overflow-x: auto;">
+<table>
+  <thead><tr><th>이름</th><th>기본수당</th><th>강의수당</th><th>인원가산</th><th>주휴수당</th><th>합계</th><th>보험구분</th></tr></thead>
+  <tbody>
+    {% for r in payroll_rows %}
+    <tr>
+      <td>{{ r.name }}</td>
+      <td>{{ '{:,}'.format(r.base) }}</td>
+      <td>{{ '{:,}'.format(r.lecture) }}</td>
+      <td>{{ '{:,}'.format(r.headcount) }}</td>
+      <td>{{ '{:,}'.format(r.weekly) }}</td>
+      <td><strong>{{ '{:,}'.format(r.total) }}</strong></td>
+      <td><span class="badge {{ 'badge-accent' if r.insurance_type == '4대보험' else 'badge-outline' }}">{{ r.insurance_type }}</span></td>
+    </tr>
+    {% else %}
+    <tr><td colspan="7" style="color: var(--muted);">집계할 근무 기록이 없습니다.</td></tr>
+    {% endfor %}
+  </tbody>
+  {% if payroll_totals %}
+  <tfoot>
+    <tr style="font-weight: 700;">
+      <td>합계</td>
+      <td>{{ '{:,}'.format(payroll_totals.base) }}</td>
+      <td>{{ '{:,}'.format(payroll_totals.lecture) }}</td>
+      <td>{{ '{:,}'.format(payroll_totals.headcount) }}</td>
+      <td>{{ '{:,}'.format(payroll_totals.weekly) }}</td>
+      <td>{{ '{:,}'.format(payroll_totals.total) }}</td>
+      <td></td>
+    </tr>
+  </tfoot>
+  {% endif %}
+</table>
+</div>
+
+<h2 class="section-title">급여내역 확인 동의 이력</h2>
+<div class="card" style="overflow-x: auto;">
+<table>
+  <thead><tr><th>확인일시</th><th>이름</th><th>대상월</th><th>지급액</th><th>보험구분</th></tr></thead>
+  <tbody>
+    {% for c in consents %}
+    <tr>
+      <td>{{ c.consented_at }}</td>
+      <td>{{ c.name }}</td>
+      <td>{{ c.target_month }}</td>
+      <td>{{ '{:,}'.format(c.total_pay) }}</td>
+      <td>{{ c.insurance_type }}</td>
+    </tr>
+    {% else %}
+    <tr><td colspan="5" style="color: var(--muted);">동의 이력이 없습니다.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}

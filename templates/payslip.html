@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}급여명세서 발급 - routineout{% endblock %}
+{% block nav %}{% endblock %}
+
+{% block extra_style %}
+  .form-wrap { max-width: 480px; margin: 40px auto; }
+  .form-card { padding: 28px; }
+  .form-card .field { margin-bottom: 16px; }
+  .form-card .btn { width: 100%; }
+  .error-box { color: var(--danger); font-size: 13px; margin-bottom: 16px; }
+{% endblock %}
+
+{% block content %}
+<div class="form-wrap">
+  <h1 class="gradient-text">급여명세서 발급</h1>
+  <p style="color: var(--muted); font-size: 13px;">본인확인 후 PDF 급여명세서를 즉시 발급합니다.</p>
+
+  <form class="card form-card" method="post">
+    {% if error %}<div class="error-box">{{ error }}</div>{% endif %}
+    <div class="field"><label>이름</label><input type="text" name="name" value="{{ form_data.name if form_data else '' }}" required></div>
+    <div class="field"><label>생년월일 (YYYY-MM-DD)</label><input type="text" name="birth" placeholder="1988-06-02" value="{{ form_data.birth if form_data else '' }}" required></div>
+    <div class="field"><label>연락처 뒤 4자리</label><input type="text" name="tel_last4" maxlength="4" required></div>
+    <div class="field">
+      <label>발급 월</label>
+      <select name="target_month" required>
+        {% for m in available_months %}<option value="{{ m }}">{{ m }}</option>{% endfor %}
+      </select>
+    </div>
+    <button type="submit" class="btn btn-primary">PDF 발급</button>
+  </form>
+</div>
+{% endblock %}

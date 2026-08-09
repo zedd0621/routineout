@@ -3,3 +3,4 @@ __pycache__/
 local_config.py
 *.db
 .venv/
+tenant_data/
