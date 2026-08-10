@@ -12,19 +12,44 @@ from openpyxl import Workbook
 from tenant_db import init_db, get_db, paycheck_folder, tenant_dir
 
 TENANT = 'aiedu'
+INSTRUCTOR_COUNT = 100  # 기존 10명 → 10배 확장
 
-FAKE_INSTRUCTORS = [
-    {'name': '김민준', 'birth': '1985-03-12', 'tel': '010-2231-5567', 'role': '주강사'},
-    {'name': '이서연', 'birth': '1990-07-24', 'tel': '010-3345-8821', 'role': '주강사'},
-    {'name': '박도윤', 'birth': '1978-11-02', 'tel': '010-4459-1123', 'role': '보조강사'},
-    {'name': '최하은', 'birth': '1995-01-19', 'tel': '010-5567-3345', 'role': '주강사'},
-    {'name': '정지호', 'birth': '1988-09-30', 'tel': '010-6678-9012', 'role': '보조강사'},
-    {'name': '강수아', 'birth': '1992-05-08', 'tel': '010-7789-2234', 'role': '주강사'},
-    {'name': '조은우', 'birth': '1965-02-14', 'tel': '010-8890-4456', 'role': '보조강사'},
-    {'name': '윤서준', 'birth': '1983-12-25', 'tel': '010-9901-5567', 'role': '주강사'},
-    {'name': '한지민', 'birth': '1998-04-03', 'tel': '010-1012-6678', 'role': '보조강사'},
-    {'name': '오세영', 'birth': '1975-08-17', 'tel': '010-1123-7789', 'role': '주강사'},
-]
+SURNAMES = ['김', '이', '박', '최', '정', '강', '조', '윤', '한', '오',
+            '서', '신', '권', '황', '안', '송', '류', '전', '홍', '문']
+GIVEN_1 = ['민', '서', '도', '하', '지', '수', '은', '윤', '재', '현',
+           '준', '아', '우', '연', '영', '나', '유', '태', '소', '진']
+GIVEN_2 = ['준', '연', '윤', '은', '호', '아', '우', '민', '진', '율',
+           '현', '빈', '서', '결', '결', '온', '결', '결', '결', '결']
+
+
+def _gen_fake_instructors(n):
+    rng = random.Random(7)  # 이름 생성은 별도 시드로 고정 — 매 실행 동일 결과 보장
+    used_names = set()
+    used_phones = set()
+    instructors = []
+    while len(instructors) < n:
+        name = rng.choice(SURNAMES) + rng.choice(GIVEN_1) + rng.choice(GIVEN_2)
+        if name in used_names:
+            continue
+        used_names.add(name)
+
+        year = rng.randint(1965, 2001)
+        month = rng.randint(1, 12)
+        day = rng.randint(1, 28)
+        birth = f'{year:04d}-{month:02d}-{day:02d}'
+
+        while True:
+            phone = f"010-{rng.randint(1000,9999)}-{rng.randint(1000,9999)}"
+            if phone not in used_phones:
+                used_phones.add(phone)
+                break
+
+        role = '주강사' if rng.random() < 0.6 else '보조강사'
+        instructors.append({'name': name, 'birth': birth, 'tel': phone, 'role': role})
+    return instructors
+
+
+FAKE_INSTRUCTORS = _gen_fake_instructors(INSTRUCTOR_COUNT)
 
 FAKE_CENTERS = [
     {'region': '김포', 'org': '가짜김포행복복지관', 'addr': '경기도 김포시 가짜로 12',
@@ -33,6 +58,16 @@ FAKE_CENTERS = [
      'manager': '서담당', 'tel': '031-222-3333', 'day': '화,목', 'time': '2교시(13:00~15:00),3교시(16:00~18:00)'},
     {'region': '파주', 'org': '가짜파주노인복지관', 'addr': '경기도 파주시 가짜로 56',
      'manager': '이담당', 'tel': '031-333-4444', 'day': '월,화,수', 'time': '1교시(10:00~12:00)'},
+    {'region': '양주', 'org': '가짜양주복지센터', 'addr': '경기도 양주시 가짜로 78',
+     'manager': '김담당', 'tel': '031-444-5555', 'day': '월,수', 'time': '2교시(13:00~15:00)'},
+    {'region': '의정부', 'org': '가짜의정부주민센터', 'addr': '경기도 의정부시 가짜로 90',
+     'manager': '박담당', 'tel': '031-555-6666', 'day': '화,목,금', 'time': '1교시(10:00~12:00),3교시(16:00~18:00)'},
+    {'region': '동두천', 'org': '가짜동두천복지관', 'addr': '경기도 동두천시 가짜로 11',
+     'manager': '최담당', 'tel': '031-666-7777', 'day': '월,화', 'time': '2교시(13:00~15:00),3교시(16:00~18:00)'},
+    {'region': '남양주', 'org': '가짜남양주주민센터', 'addr': '경기도 남양주시 가짜로 22',
+     'manager': '정담당', 'tel': '031-777-8888', 'day': '수,금', 'time': '1교시(10:00~12:00)'},
+    {'region': '구리', 'org': '가짜구리복지관', 'addr': '경기도 구리시 가짜로 33',
+     'manager': '강담당', 'tel': '031-888-9999', 'day': '월,수,금', 'time': '3교시(16:00~18:00)'},
 ]
 
 TIME_SLOTS = [
@@ -217,10 +252,17 @@ def seed_db():
             'N', '', '', '데모용 가짜 데이터'
         ))
 
+    app_rng = random.Random(11)  # 지원 내역(요일·교시 부분지원)도 별도 시드로 고정
     for i, inst in enumerate(FAKE_INSTRUCTORS):
         center = FAKE_CENTERS[i % len(FAKE_CENTERS)]
-        days = center['day'].split(',')
-        times = center['time'].split(',')
+        center_days = center['day'].split(',')
+        center_times = center['time'].split(',')
+        # 전원이 센터 요구조건을 100% 만족하면 추천 점수가 전부 동점이 되어 데모 효과가
+        # 떨어진다 — 요일·교시 일부만 지원하는 인원을 섞어 점수 편차를 자연스럽게 만든다.
+        days = center_days if app_rng.random() < 0.5 else app_rng.sample(
+            center_days, k=app_rng.randint(1, len(center_days)))
+        times = center_times if app_rng.random() < 0.5 else app_rng.sample(
+            center_times, k=app_rng.randint(1, len(center_times)))
         choices = [{
             'rank': 1,
             'region': center['region'],
