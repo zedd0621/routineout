@@ -22,11 +22,20 @@ def interview_excel_path(tenant):
     return os.path.join(tenant_dir(tenant), 'interview_results.xlsx')
 
 
+_bonus_data_cache = {}
+
+
 def load_bonus_data(tenant):
     """면접결과 관리표에서 합격자의 우대사항과 최종점수를 읽는다."""
     path = interview_excel_path(tenant)
     if not OPENPYXL_OK or not os.path.exists(path):
         return {}
+
+    mtime = os.path.getmtime(path)
+    cached = _bonus_data_cache.get(path)
+    if cached and cached[0] == mtime:
+        return cached[1]
+
     try:
         wb = load_workbook(path, read_only=True)
         ws = wb['면접결과 관리표']
@@ -49,6 +58,7 @@ def load_bonus_data(tenant):
                 '취약': '취약' in bonus_str,
                 'interview_score': interview_score,
             }
+        _bonus_data_cache[path] = (mtime, bonus_map)
         return bonus_map
     except Exception:
         return {}

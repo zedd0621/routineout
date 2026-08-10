@@ -57,11 +57,24 @@ def ceil_15min(td_seconds):
     return math.ceil(minutes / 15) * 15
 
 
+# 엑셀 파일은 요청마다 새로 열면 강사 수가 늘어날수록 응답이 느려진다.
+# 파일 수정시각(mtime)을 키로 캐싱해서, 파일이 안 바뀌었으면 재파싱하지 않는다.
+# 워커 프로세스별 메모리 캐시라 워커마다 최초 1회씩만 파싱 비용이 든다.
+_instructor_list_cache = {}
+_worklog_cache = {}
+
+
 def load_instructor_list(paycheck_folder):
     """강사명단 엑셀 로딩 -> {이름: {'birth': 'YYYY-MM-DD', 'tel': '010-xxxx-xxxx'}}"""
     path = os.path.join(paycheck_folder, 'instructor_list.xlsx')
     if not os.path.exists(path) or not OPENPYXL_OK:
         return {}
+
+    mtime = os.path.getmtime(path)
+    cached = _instructor_list_cache.get(path)
+    if cached and cached[0] == mtime:
+        return cached[1]
+
     try:
         wb = load_workbook(path, read_only=True)
         ws = wb['Sheet1'] if 'Sheet1' in wb.sheetnames else wb[wb.sheetnames[0]]
@@ -81,6 +94,7 @@ def load_instructor_list(paycheck_folder):
                 'birth': birth,
                 'tel': str(tel).strip() if tel else ''
             }
+        _instructor_list_cache[path] = (mtime, result)
         return result
     except Exception:
         return {}
@@ -91,6 +105,12 @@ def load_worklog(paycheck_folder, target_month):
     path = os.path.join(paycheck_folder, f'worklog_{target_month}.xlsx')
     if not os.path.exists(path) or not OPENPYXL_OK:
         return {}
+
+    mtime = os.path.getmtime(path)
+    cached = _worklog_cache.get(path)
+    if cached and cached[0] == mtime:
+        return cached[1]
+
     try:
         wb = load_workbook(path, read_only=True, data_only=True)
         ws = wb[wb.sheetnames[0]]
@@ -242,6 +262,7 @@ def load_worklog(paycheck_folder, target_month):
         for k in result:
             result[k].sort(key=lambda x: x['date'])
 
+        _worklog_cache[path] = (mtime, result)
         return result
     except Exception:
         return {}
