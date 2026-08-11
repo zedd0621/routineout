@@ -2,57 +2,132 @@
 
 {% block title %}근무센터 현황 - routineout{% endblock %}
 {% block nav %}
-<a href="{{ url_for('center_admin_download', tenant=tenant) }}" class="btn btn-outline">엑셀 다운로드</a>
+<a href="{{ url_for('instructor_admin', tenant=tenant) }}" class="btn btn-outline">강사 지원 현황 →</a>
+<a href="{{ url_for('center_admin_download', tenant=tenant) }}" class="btn btn-primary">CSV 다운로드</a>
 <a href="{{ url_for('tenant_dashboard', tenant=tenant) }}" class="btn btn-outline">대시보드</a>
 <a href="{{ url_for('logout') }}" class="btn btn-outline">로그아웃</a>
 {% endblock %}
 
 {% block extra_style %}
-  .page-wrap table { margin-top: 20px; }
-  td.wrap { max-width: 220px; white-space: normal; word-break: break-all; }
+  .title-badges { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 8px 0 18px; }
+  .search-box { margin-bottom: 14px; max-width: 320px; }
+  .search-box input { width: 100%; height: 38px; padding: 0 14px; border-radius: 9999px; border: 1px solid var(--card-border); background: var(--card-bg); color: var(--fg); font-size: 13px; }
+  .table-wrap { max-height: 55vh; overflow: auto; margin-bottom: 24px; }
+  table { white-space: nowrap; }
+  th { position: sticky; top: 0; z-index: 2; }
+  td { max-width: 180px; overflow: hidden; text-overflow: ellipsis; }
+  tr.confirmed-row td { background: rgba(255,255,255,0.05); }
+  .add-form-title { font-size: 15px; font-weight: 700; margin-bottom: 16px; }
+  .add-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin-bottom: 16px; }
+  .add-grid label { font-size: 12px; color: var(--muted); margin-bottom: 5px; display: block; font-weight: 600; }
+  .add-grid input, .add-grid select { width: 100%; padding: 9px 12px; background: rgba(255,255,255,0.04); border: 1px solid var(--card-border); color: var(--fg); border-radius: 12px; font-size: 13px; font-family: inherit; }
 {% endblock %}
 
 {% block content %}
 <h1 class="gradient-text">근무센터 현황</h1>
-<p style="color: var(--muted);">총 {{ rows|length }}건 · 배치 확정된 센터만 강사지원/추천에 노출됩니다.</p>
+<div class="title-badges">
+  <span class="badge badge-outline">전체 {{ rows|length }}건</span>
+  <span class="badge badge-accent">확정 {{ rows|selectattr('confirmed','equalto',1)|list|length }}건</span>
+</div>
 
-<div class="card" style="overflow-x: auto;">
-<table>
+<div class="search-box"><input type="text" id="searchInput" placeholder="기관명, 담당자, 지역 등으로 검색" onkeyup="filterTable()"></div>
+
+<div class="card table-wrap">
+<table id="dataTable">
   <thead>
     <tr>
-      <th>지역</th><th>기관명</th><th>담당자</th><th>연락처</th>
-      <th>희망요일</th><th>희망교시</th><th>상태</th><th></th>
+      <th>ID</th><th>제출일시</th><th>지역</th><th>기관명</th><th>기관주소</th><th>담당자</th><th>연락처</th>
+      <th>강의장수</th><th>강의장정보</th><th>디바이스</th><th>수강대상</th><th>수강인원</th><th>희망강좌</th>
+      <th>모집가능여부</th><th>모집채널</th><th>운영기간</th><th>희망요일</th><th>희망시간</th>
+      <th>에듀버스</th><th>에듀버스장소</th><th>에듀버스시기</th><th>기타</th><th>확정여부</th><th>관리</th>
     </tr>
   </thead>
   <tbody>
     {% for row in rows %}
-    <tr>
+    <tr class="{{ 'confirmed-row' if row['confirmed'] == 1 else '' }}">
+      <td>{{ row['id'] }}</td>
+      <td>{{ row['submitted_at'] }}</td>
       <td>{{ row['region'] }}</td>
-      <td class="wrap">{{ row['org'] }}</td>
+      <td>{{ row['org'] }}</td>
+      <td>{{ row['addr'] }}</td>
       <td>{{ row['manager'] }}</td>
       <td>{{ row['tel'] }}</td>
+      <td>{{ row['room_count'] }}</td>
+      <td>{{ row['room_info'] }}</td>
+      <td>{{ row['device'] }}</td>
+      <td>{{ row['target'] }}</td>
+      <td>{{ row['headcount'] }}</td>
+      <td>{{ row['course'] }}</td>
+      <td>{{ row['recruit'] }}</td>
+      <td>{{ row['recruit_channel'] }}</td>
+      <td>{{ row['period'] }}</td>
       <td>{{ row['day'] }}</td>
-      <td class="wrap">{{ row['time'] }}</td>
+      <td>{{ row['time'] }}</td>
+      <td>{{ row['edubus'] }}</td>
+      <td>{{ row['edubus_addr'] }}</td>
+      <td>{{ row['edubus_date'] }}</td>
+      <td>{{ row['etc'] }}</td>
       <td>
-        {% if row['confirmed'] %}
-        <span class="badge badge-accent">확정</span>
-        {% else %}
-        <span class="badge badge-muted">대기</span>
-        {% endif %}
+        {% if row['confirmed'] == 1 %}<span style="color:var(--fg); font-weight:700;">확정</span>
+        {% else %}<span style="color:var(--muted);">미확정</span>{% endif %}
       </td>
-      <td>
+      <td style="white-space:nowrap;">
         <form method="post" action="{{ url_for('center_admin_confirm', tenant=tenant, row_id=row['id']) }}" style="display:inline;">
           <button type="submit" class="btn btn-sm btn-outline">{{ '확정취소' if row['confirmed'] else '확정' }}</button>
         </form>
-        <form method="post" action="{{ url_for('center_admin_delete', tenant=tenant, row_id=row['id']) }}" style="display:inline;">
+        <form method="post" action="{{ url_for('center_admin_delete', tenant=tenant, row_id=row['id']) }}" style="display:inline;" onsubmit="return confirm('삭제하시겠습니까?')">
           <button type="submit" class="btn btn-sm btn-danger">삭제</button>
         </form>
       </td>
     </tr>
     {% else %}
-    <tr><td colspan="8" style="color: var(--muted);">등록된 센터가 없습니다.</td></tr>
+    <tr><td colspan="24" style="color: var(--muted);">등록된 센터가 없습니다.</td></tr>
     {% endfor %}
   </tbody>
 </table>
 </div>
+
+<div class="card" style="padding: 24px;">
+  <div class="add-form-title">수기 데이터 입력 (전화·이메일 회신 내용)</div>
+  <form method="post" action="{{ url_for('center_admin_add', tenant=tenant) }}">
+    <div class="add-grid">
+      <div>
+        <label>지역 <span class="req">*</span></label>
+        <select name="region" required>
+          <option value="">선택</option>
+          {% for r in regions %}<option value="{{ r }}">{{ r }}</option>{% endfor %}
+        </select>
+      </div>
+      <div><label>기관명 <span class="req">*</span></label><input type="text" name="org" placeholder="예: 고양시청" required></div>
+      <div><label>기관 주소</label><input type="text" name="addr" placeholder="도로명 주소"></div>
+      <div><label>담당자 성함/직책</label><input type="text" name="manager" placeholder="예: 홍길동 주무관"></div>
+      <div><label>연락처</label><input type="text" name="tel" placeholder="010-0000-0000"></div>
+      <div><label>강의장 수</label><input type="text" name="room_count" placeholder="예: 2"></div>
+      <div><label>강의장 정보</label><input type="text" name="room_info" placeholder="예: 컴퓨터실/20명/데스크탑15대"></div>
+      <div><label>디바이스</label><input type="text" name="device" placeholder="예: 데스크탑, 노트북"></div>
+      <div><label>수강 대상</label><input type="text" name="target" placeholder="예: 어르신(60대 이상)"></div>
+      <div><label>예상 수강 인원</label><input type="text" name="headcount" placeholder="예: 15명"></div>
+      <div><label>희망 강좌</label><input type="text" name="course" placeholder="예: ①스마트폰 처음 사용하기"></div>
+      <div><label>모집 가능 여부</label><input type="text" name="recruit" placeholder="예: 가능(자체 모집 가능)"></div>
+      <div><label>모집 채널</label><input type="text" name="recruit_channel" placeholder="예: 기관 SNS"></div>
+      <div><label>운영 기간(월)</label><input type="text" name="period" placeholder="예: 9월, 10월"></div>
+      <div><label>희망 요일</label><input type="text" name="day" placeholder="예: 월, 수, 금"></div>
+      <div><label>희망 시간</label><input type="text" name="time" placeholder="예: 1교시(10:00~12:00)"></div>
+      <div><label>에듀버스 희망</label><input type="text" name="edubus" placeholder="희망함 / 희망하지 않음"></div>
+      <div><label>에듀버스 장소</label><input type="text" name="edubus_addr" placeholder="주소 입력"></div>
+      <div><label>에듀버스 시기</label><input type="text" name="edubus_date" placeholder="예: 7월 말"></div>
+      <div><label>기타</label><input type="text" name="etc" placeholder="특이사항"></div>
+    </div>
+    <button type="submit" class="btn btn-primary">+ 수기 데이터 추가</button>
+  </form>
+</div>
+
+<script>
+  function filterTable() {
+    const input = document.getElementById('searchInput').value.toLowerCase();
+    document.querySelectorAll('#dataTable tbody tr').forEach(row => {
+      row.style.display = row.textContent.toLowerCase().includes(input) ? '' : 'none';
+    });
+  }
+</script>
 {% endblock %}

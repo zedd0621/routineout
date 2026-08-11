@@ -9,12 +9,23 @@
   .form-card .field { margin-bottom: 16px; }
   .form-card .btn { width: 100%; }
   .error-box { color: var(--danger); font-size: 13px; margin-bottom: 16px; }
+  .notice-box { padding: 14px 18px; margin-bottom: 16px; text-align: left; font-size: 12.5px; line-height: 1.8; color: #cfcfd2; }
+  .notice-box b { color: var(--fg); }
 {% endblock %}
 
 {% block content %}
 <div class="form-wrap">
   <h1 class="gradient-text">급여명세서 발급</h1>
   <p style="color: var(--muted); font-size: 13px;">본인확인 후 PDF 급여명세서를 즉시 발급합니다.</p>
+
+  <div class="card notice-box">
+    <b>⚠ 주휴수당 계산 방식 안내</b><br>
+    이 급여명세서의 주휴수당은 <b>월 경계에 걸친 주(예: 이번 달 마지막 근무주가 다음 달로 이어지는 경우)를 포함</b>하여 계산됩니다.
+    즉, 조회월 근무기록에 포함된 모든 주(월~일)의 주휴수당을 합산한 금액입니다.
+    <br><br>
+    <b>⚠ 고용보험 공제 안내</b><br>
+    만 65세 이후 고용된 경우 고용보험법 제10조에 따라 고용보험(실업급여분)이 공제되지 않습니다.
+  </div>
 
   <form class="card form-card" method="post">
     {% if error %}<div class="error-box">{{ error }}</div>{% endif %}

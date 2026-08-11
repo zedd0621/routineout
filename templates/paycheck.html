@@ -4,75 +4,183 @@
 {% block nav %}{% endblock %}
 
 {% block extra_style %}
-  .form-wrap { max-width: 640px; margin: 40px auto; }
-  .form-card { padding: 28px; margin-bottom: 20px; }
-  .form-card .field { margin-bottom: 16px; }
-  .form-card .btn { width: 100%; }
-  .error-box { color: var(--danger); font-size: 13px; margin-bottom: 16px; }
-  .total-row { display: flex; justify-content: space-between; align-items: center; padding: 16px 0; border-top: 1px solid var(--card-border); margin-top: 8px; }
-  .total-row .num { font-size: 24px; font-weight: 700; }
+  .wrap { max-width: 720px; margin: 0 auto; }
+  .form-header { padding: 8px 0 20px; text-align: center; margin-bottom: 8px; }
+  .section { padding: 20px 0; border-bottom: 1px solid var(--card-border); }
+  .section-title { font-size: 15px; font-weight: 700; margin-bottom: 16px; }
+  .section-title .sub { font-weight: 500; font-size: 12px; color: var(--muted); margin-left: 6px; }
+  .field { margin-bottom: 16px; }
+  .birth-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+  .tel-row { display: flex; align-items: center; gap: 8px; }
+  .tel-row .fixed { color: var(--muted); font-size: 14px; white-space: nowrap; }
+  .tel-row input { flex: 1; text-align: center; letter-spacing: 2px; }
+  .submit-btn { width: 100%; padding: 14px; border: none; border-radius: var(--radius-field); font-size: 15.5px; font-weight: 700; cursor: pointer; background: var(--primary-bg); color: var(--primary-fg); }
+  .submit-btn:hover { opacity: 0.88; }
+  .error-box { border-left: 3px solid var(--danger); padding: 10px 16px; margin-bottom: 16px; font-size: 13.5px; color: var(--danger); font-weight: 600; }
+
+  .result-header { padding: 4px 0 18px; }
+  .result-header .rname { font-size: 19px; font-weight: 700; }
+  .result-header .rmonth { font-size: 13px; color: var(--muted); margin-top: 2px; }
+  .summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-bottom: 6px; }
+  @media(max-width: 600px) { .summary-grid { grid-template-columns: 1fr 1fr; } }
+  .summary-box .slabel { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+  .summary-box .svalue .num { font-size: 20px; font-weight: 800; }
+  .summary-box .svalue .unit { font-size: 13px; font-weight: 500; color: var(--muted); margin-left: 2px; }
+  .summary-box.total .svalue .num { font-size: 22px; }
+
+  table.detail-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  .detail-table th { color: var(--muted); padding: 9px 10px; text-align: center; font-weight: 600; border-bottom: 1px solid var(--card-border); }
+  .detail-table td { padding: 9px 10px; border-bottom: 1px solid var(--card-border); text-align: center; color: #d5dad5; }
+  .bonus-tag { font-weight: 700; font-size: 10.5px; display: block; color: var(--fg); }
+
+  .consent-box { border: 1px solid var(--card-border); border-radius: var(--radius-card); padding: 18px 20px; margin-top: 14px; }
+  .consent-box .ctitle { font-size: 14px; font-weight: 700; margin-bottom: 10px; }
+  .consent-box p { font-size: 13px; color: #cfcfd2; line-height: 1.7; margin-bottom: 12px; }
+  .consent-check { display: flex; align-items: flex-start; gap: 8px; font-size: 13.5px; color: #cfcfd2; margin-bottom: 14px; cursor: pointer; }
+  .consent-check input { margin-top: 3px; }
+  .consent-btn { width: 100%; padding: 14px; border: none; border-radius: var(--radius-field); font-size: 15px; font-weight: 700; cursor: pointer; background: var(--primary-bg); color: var(--primary-fg); }
+  .consent-btn:disabled { background: rgba(255,255,255,0.1); color: var(--muted); cursor: not-allowed; }
+  .bank-row { display: flex; gap: 8px; }
+  .bank-row select { flex: 1; }
+  .bank-row input { flex: 1.4; }
 {% endblock %}
 
 {% block content %}
-<div class="form-wrap">
-  <h1 class="gradient-text">급여내역 확인</h1>
-  <p style="color: var(--muted); font-size: 13px;">데모 — 이름/생년월일/연락처 뒤 4자리로 본인확인 후 조회합니다.</p>
+<div class="wrap">
+
+  <div class="form-header">
+    <h1 class="gradient-text" style="font-size:20px;">급여내역 확인</h1>
+  </div>
 
   {% if not result %}
-  <form class="card form-card" method="post">
+  <div class="card section" style="padding: 24px 26px;">
+    <div class="section-title">본인 확인</div>
     {% if error %}<div class="error-box">{{ error }}</div>{% endif %}
-    <div class="field"><label>이름</label><input type="text" name="name" value="{{ form_data.name if form_data else '' }}" required></div>
-    <div class="field"><label>생년월일 (YYYY-MM-DD)</label><input type="text" name="birth" placeholder="1988-06-02" value="{{ form_data.birth if form_data else '' }}" required></div>
-    <div class="field"><label>연락처 뒤 4자리</label><input type="text" name="tel_last4" maxlength="4" required></div>
-    <div class="field">
-      <label>조회 월</label>
-      <select name="target_month" required>
-        {% for m in available_months %}<option value="{{ m }}">{{ m }}</option>{% endfor %}
-      </select>
-    </div>
-    <button type="submit" class="btn btn-primary">조회</button>
-  </form>
+    <form method="post">
+      <div class="field">
+        <label>조회 월 <span class="req">*</span></label>
+        <select name="target_month" required>
+          <option value="">선택해 주세요</option>
+          {% for m in available_months %}
+          <option value="{{ m }}" {{ 'selected' if form_data and form_data.get('target_month')==m else '' }}>{{ m }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="field">
+        <label>성함 <span class="req">*</span></label>
+        <input type="text" name="name" placeholder="홍길동" value="{{ form_data.get('name','') if form_data else '' }}" required>
+      </div>
+      <div class="field">
+        <label>생년월일 <span class="req">*</span></label>
+        <div class="birth-row">
+          <select name="birth_year" id="birthYear" required></select>
+          <select name="birth_month" id="birthMonth" required></select>
+          <select name="birth_day" id="birthDay" required></select>
+        </div>
+        <input type="hidden" name="birth" id="birthHidden">
+      </div>
+      <div class="field">
+        <label>연락처 뒤 4자리 <span class="req">*</span></label>
+        <div class="tel-row">
+          <span class="fixed">010-****-</span>
+          <input type="text" name="tel_last4" maxlength="4" placeholder="1234" inputmode="numeric" required>
+        </div>
+      </div>
+      <button type="submit" class="submit-btn">급여내역 조회하기</button>
+    </form>
+  </div>
+
   {% else %}
-  <div class="card form-card">
-    <strong>{{ name }}</strong> · {{ target_month }} · <span class="badge badge-outline">{{ insurance_type }}</span>
+  <div class="result-header">
+    <div class="rname">{{ name }} 강사님</div>
+    <div class="rmonth">{{ target_month }} 급여내역</div>
+  </div>
 
-    <table style="margin-top: 16px;">
-      <thead><tr><th>날짜</th><th>역할</th><th>근무시간</th><th>강의시간</th><th>일급</th></tr></thead>
-      <tbody>
-        {% for e in entries %}
-        <tr>
-          <td>{{ e.date }} ({{ e.weekday }})</td>
-          <td>{{ e.role }}</td>
-          <td>{{ e.total_hours }}</td>
-          <td>{{ e.lecture_hours }}</td>
-          <td>{{ '{:,}'.format(e.daily_pay) }}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-
-    {% if weekly_rows %}
-    <table style="margin-top: 12px;">
-      <thead><tr><th>주간</th><th>주간근로시간</th><th>주휴수당 발생</th><th>금액</th></tr></thead>
-      <tbody>
-        {% for w in weekly_rows %}
-        <tr>
-          <td>{{ w.week_start }} ~ {{ w.week_end }}</td>
-          <td>{{ w.hours }}h</td>
-          <td>{{ '충족' if w.qualified and not w.dup_skipped else '미달' }}</td>
-          <td>{{ '{:,}'.format(w.pay) }}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-    {% endif %}
-
-    <div class="total-row">
-      <span>지급 합계</span>
-      <span class="num gradient-text">{{ '{:,}'.format(total_pay) }}원</span>
+  <div class="section">
+    <div class="summary-grid">
+      <div class="summary-box"><div class="slabel">총 근무시간</div><div class="svalue"><span class="num">{{ total_hours }}</span><span class="unit">시간</span></div></div>
+      <div class="summary-box"><div class="slabel">총 강의시간</div><div class="svalue"><span class="num">{{ total_lecture }}</span><span class="unit">시간</span></div></div>
+      <div class="summary-box"><div class="slabel">주휴수당(총급여 포함)</div><div class="svalue"><span class="num" style="font-size:16px;">{{ '{:,}'.format(weekly_total) }}</span><span class="unit">원</span></div></div>
+      <div class="summary-box total"><div class="slabel">총 급여(세전)</div><div class="svalue"><span class="num gradient-text">{{ '{:,}'.format(total_pay) }}</span><span class="unit">원</span></div></div>
+      <div class="summary-box"><div class="slabel">사회보험 적용</div><div class="svalue"><span class="badge {{ 'badge-accent' if insurance_type == '4대보험' else 'badge-outline' }}">{{ insurance_type }}</span></div></div>
     </div>
+  </div>
 
-    <form method="post" action="{{ url_for('paycheck_consent', tenant=tenant) }}">
+  <div class="section">
+    <div class="section-title">일자별 상세내역</div>
+    <div style="overflow-x:auto;">
+      <table class="detail-table">
+        <thead><tr><th>날짜</th><th>요일</th><th>직무</th><th>예정시간</th><th>실제출퇴근</th><th>근무시간</th><th>강의시간</th><th>인원</th><th>가산</th><th>일급여</th></tr></thead>
+        <tbody>
+          {% for e in entries %}
+          <tr>
+            <td>{{ e.date[5:] }}</td>
+            <td>{{ e.weekday }}</td>
+            <td>{{ e.role }}</td>
+            <td>{{ e.sched_start }}~{{ e.sched_end }}</td>
+            <td>{{ e.actual_in }}~{{ e.actual_out }}</td>
+            <td>{{ e.total_hours }}h</td>
+            <td>{{ e.lecture_hours }}h</td>
+            <td>{{ e.headcount if e.headcount else '-' }}</td>
+            <td>
+              {% if e.is_saturday %}<span class="bonus-tag">토×1.5</span>{% endif %}
+              {% if e.night_hours and e.night_hours > 0 %}<span class="bonus-tag">야간{{ e.night_hours }}h×1.5</span>{% endif %}
+              {% if e.early_bonus > 0 %}<span class="bonus-tag">조기+{{ e.early_bonus }}</span>{% endif %}
+              {% if e.late_bonus > 0 %}<span class="bonus-tag">연장+{{ e.late_bonus }}</span>{% endif %}
+              {% if e.headcount_bonus and e.headcount_bonus > 0 %}<span class="bonus-tag">인원+{{ '{:,}'.format(e.headcount_bonus) }}</span>{% endif %}
+            </td>
+            <td><b>{{ '{:,}'.format(e.daily_pay) }}원</b></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">주휴수당 내역<span class="sub">월경계에 걸친 주는 해당 월에 속한 근무일의 시간 합이 15시간 이상이면 해당 월 급여에 포함됩니다(전달에서 이미 지급된 경우는 중복 지급되지 않습니다)</span></div>
+    <div style="overflow-x:auto;">
+      <table class="detail-table">
+        <thead><tr><th>주 기간(월~일)</th><th>주간 소정근로</th><th>발생여부</th><th>주휴수당</th></tr></thead>
+        <tbody>
+          {% for w in weekly_rows %}
+          <tr><td>{{ w.week_start }} ~ {{ w.week_end }}</td><td>{{ w.hours }}h</td><td>{{ '발생' if w.qualified else '미달' }}</td><td><b>{{ '{:,}'.format(w.pay) }}원</b></td></tr>
+          {% endfor %}
+          <tr><td colspan="3" style="text-align:right; font-weight:700;">주휴수당 합계</td><td><b>{{ '{:,}'.format(weekly_total) }}원</b></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:11.5px; color:var(--muted); margin-top:10px;">
+      일급여 합계 {{ '{:,}'.format(daily_total) }}원 + 주휴수당 {{ '{:,}'.format(weekly_total) }}원 = 총 급여(세전) {{ '{:,}'.format(total_pay) }}원
+    </p>
+  </div>
+
+  <div class="section">
+    <div class="section-title">사회보험 적용 구분
+      <span class="badge {{ 'badge-accent' if insurance_type == '4대보험' else 'badge-outline' }}">{{ insurance_type }} 대상</span>
+    </div>
+    {% if ins_reasons %}
+    <ul style="font-size:12.5px; color:#cfcfd2; margin:0 0 8px 18px; line-height:1.7;">
+      {% for r in ins_reasons %}<li>{{ r }}</li>{% endfor %}
+    </ul>
+    {% else %}
+    <p style="font-size:12.5px; color:var(--muted); margin-bottom:8px;">
+      4대보험 요건(월 소정근로 60h 이상 — 이번 달 {{ month_sched_hours }}h) 미해당 → 고용보험·산재보험만 적용됩니다.
+    </p>
+    {% endif %}
+    <p style="font-size:11.5px; color:var(--muted); line-height:1.6;">
+      ※ 위 금액은 보험료·세금 공제 전 세전 금액입니다. 실제 공제 내역과 지급액은 급여 지급 시 별도 안내됩니다.
+    </p>
+  </div>
+
+  <div class="consent-box">
+    <div class="ctitle">급여내역 확인 동의</div>
+    <p>
+      위 급여내역은 {{ target_month }} 실제 근무기록(시프티 출퇴근 기록 기준)을 바탕으로 산정되었습니다.<br>
+      세전 금액이며, 실제 지급액은 4대보험 및 세금 공제 후 변동될 수 있습니다.<br>
+      내용을 확인하신 후 아래 동의 절차를 진행해 주세요.
+    </p>
+    <form method="post" action="{{ url_for('paycheck_consent', tenant=tenant) }}" id="consentForm">
       <input type="hidden" name="name" value="{{ name }}">
       <input type="hidden" name="birth" value="{{ birth }}">
       <input type="hidden" name="tel_last4" value="{{ tel_last4 }}">
@@ -80,11 +188,59 @@
       <input type="hidden" name="total_pay" value="{{ total_pay }}">
       <input type="hidden" name="insurance_type" value="{{ insurance_type }}">
       <input type="hidden" name="snapshot_json" value='{{ snapshot_json }}'>
-      <div class="field" style="margin-top: 16px;"><label>은행명</label><input type="text" name="bank_name"></div>
-      <div class="field"><label>계좌번호</label><input type="text" name="account_number"></div>
-      <button type="submit" class="btn btn-primary">내역 확인 및 동의</button>
+      <div class="field">
+        <label>급여수령 희망계좌 <span class="req">*</span></label>
+        <div class="bank-row">
+          <select name="bank_name" required>
+            <option value="">은행 선택</option>
+            <option>KB국민</option><option>신한</option><option>우리</option><option>하나</option>
+            <option>NH농협</option><option>IBK기업</option><option>SC제일</option><option>카카오뱅크</option>
+            <option>케이뱅크</option><option>토스뱅크</option><option>새마을금고</option><option>신협</option>
+            <option>우체국</option><option>부산은행</option><option>대구은행</option><option>광주은행</option>
+            <option>경남은행</option><option>전북은행</option><option>제주은행</option><option>수협</option>
+            <option>기타</option>
+          </select>
+          <input type="text" name="account_number" placeholder="계좌번호 (- 없이 숫자만)" inputmode="numeric" required>
+        </div>
+      </div>
+      <label class="consent-check">
+        <input type="checkbox" id="agreeCheck" onchange="document.getElementById('consentBtn').disabled = !this.checked">
+        위 급여내역을 확인하였으며, 본인 {{ name }}은(는) 해당 내용에 동의합니다.
+      </label>
+      <button type="submit" class="consent-btn" id="consentBtn" disabled>확인 및 동의 제출</button>
     </form>
   </div>
   {% endif %}
+
 </div>
+
+<script>
+  const yearSel = document.getElementById('birthYear');
+  if (yearSel) {
+    const monthSel = document.getElementById('birthMonth');
+    const daySel = document.getElementById('birthDay');
+    const thisYear = new Date().getFullYear();
+    yearSel.innerHTML = '<option value="">년</option>';
+    for (let y = thisYear - 15; y >= thisYear - 90; y--) yearSel.innerHTML += `<option value="${y}">${y}년</option>`;
+    monthSel.innerHTML = '<option value="">월</option>';
+    for (let m = 1; m <= 12; m++) monthSel.innerHTML += `<option value="${String(m).padStart(2,'0')}">${m}월</option>`;
+    daySel.innerHTML = '<option value="">일</option>';
+    for (let d = 1; d <= 31; d++) daySel.innerHTML += `<option value="${String(d).padStart(2,'0')}">${d}일</option>`;
+
+    function updateBirthHidden() {
+      const y = yearSel.value, m = monthSel.value, d = daySel.value;
+      if (y && m && d) document.getElementById('birthHidden').value = `${y}-${m}-${d}`;
+    }
+    yearSel.addEventListener('change', updateBirthHidden);
+    monthSel.addEventListener('change', updateBirthHidden);
+    daySel.addEventListener('change', updateBirthHidden);
+    document.querySelector('form').addEventListener('submit', function(e) {
+      updateBirthHidden();
+      if (!document.getElementById('birthHidden').value) {
+        e.preventDefault();
+        alert('생년월일을 모두 선택해 주세요.');
+      }
+    });
+  }
+</script>
 {% endblock %}

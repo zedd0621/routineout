@@ -34,7 +34,36 @@
   </div>
 </div>
 
-<h2 class="section-title">집계 대상월: {{ payroll_months|join(', ') if payroll_months else '없음' }}</h2>
+<h2 class="section-title">강사급여 총합
+  {% if payroll_months %}<span style="font-weight:500; font-size:12.5px; color:var(--muted); margin-left:8px;">({{ payroll_months[0] }}월분 · 이 달 근무기록만 집계, 누적 아님)</span>{% endif %}
+</h2>
+{% if not payroll_months %}
+<p style="color: var(--muted);">집계할 근무일지가 업로드되지 않았습니다.</p>
+{% else %}
+<div class="status-grid" style="grid-template-columns: repeat(5, 1fr); margin-bottom: 20px;">
+  <div class="kpi-card">
+    <div class="klabel">기본수당</div>
+    <div class="kvalue"><span class="num" style="font-size:19px;">{{ '{:,}'.format(payroll_totals.base) }}</span><span class="unit">원</span></div>
+  </div>
+  <div class="kpi-card">
+    <div class="klabel">강의수당</div>
+    <div class="kvalue"><span class="num" style="font-size:19px;">{{ '{:,}'.format(payroll_totals.lecture) }}</span><span class="unit">원</span></div>
+  </div>
+  <div class="kpi-card">
+    <div class="klabel">인원가산수당</div>
+    <div class="kvalue"><span class="num" style="font-size:19px;">{{ '{:,}'.format(payroll_totals.headcount) }}</span><span class="unit">원</span></div>
+  </div>
+  <div class="kpi-card">
+    <div class="klabel">주휴수당</div>
+    <div class="kvalue"><span class="num" style="font-size:19px;">{{ '{:,}'.format(payroll_totals.weekly) }}</span><span class="unit">원</span></div>
+  </div>
+  <div class="kpi-card">
+    <div class="klabel">총합(세전)</div>
+    <div class="kvalue"><span class="num gradient-text" style="font-size:20px;">{{ '{:,}'.format(payroll_totals.total) }}</span><span class="unit">원</span></div>
+  </div>
+</div>
+{% endif %}
+
 <div class="card" style="overflow-x: auto;">
 <table>
   <thead><tr><th>이름</th><th>기본수당</th><th>강의수당</th><th>인원가산</th><th>주휴수당</th><th>합계</th><th>보험구분</th></tr></thead>

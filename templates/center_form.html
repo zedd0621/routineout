@@ -4,96 +4,214 @@
 {% block nav %}{% endblock %}
 
 {% block extra_style %}
-  .form-wrap { max-width: 640px; margin: 40px auto; }
-  .form-wrap h1 { margin-bottom: 4px; }
-  .form-wrap .sub { color: var(--muted); font-size: 13px; margin-bottom: 24px; }
-  .form-card { padding: 28px; margin-bottom: 16px; }
-  .form-card .field { margin-bottom: 16px; }
-  .form-card .btn { width: 100%; }
+  .wrap { max-width: 780px; margin: 0 auto; }
+  .form-header { padding: 8px 0 20px; text-align: center; margin-bottom: 8px; }
+  .notice-box { padding: 14px 18px; margin-top: 16px; text-align: left; font-size: 13.5px; line-height: 1.8; color: #cfcfd2; }
+  .tel-box { border: 1px solid var(--card-border); background: var(--card-bg); border-radius: 9999px; padding: 9px 18px; margin-top: 12px; font-size: 13.5px; color: #cfcfd2; font-weight: 600; display: inline-block; }
+
+  .section { padding: 24px 26px; margin-bottom: 14px; }
+  .section-title { font-size: 16px; font-weight: 700; margin-bottom: 18px; display: flex; align-items: center; gap: 10px; }
+  .field { margin-bottom: 16px; }
+  .field textarea { width: 100%; border: 1px solid var(--card-border); border-radius: var(--radius-field); padding: 10px 14px; font-size: 14px; color: var(--fg); background: rgba(255,255,255,0.04); font-family: inherit; resize: vertical; min-height: 70px; }
+  .hint { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media(max-width: 600px) { .row2 { grid-template-columns: 1fr; } }
+
+  .course-category { margin-bottom: 14px; }
+  .cat-title-row { display: flex; align-items: center; margin-bottom: 8px; }
+  .cat-title { font-size: 13px; font-weight: 700; padding: 5px 12px; border-radius: 9999px; margin-right: 8px; }
+  .course-checks { display: flex; flex-wrap: wrap; gap: 7px; }
+  .course-checks label { display: flex; align-items: center; gap: 5px; border: 1px solid var(--card-border); border-radius: 8px; padding: 5px 11px; font-size: 13px; cursor: pointer; color: #cfcfd2; background: rgba(255,255,255,0.02); }
+  .course-checks label:has(input:checked) { border-color: transparent; background: var(--primary-bg); color: var(--primary-fg); font-weight: 700; }
+  .select-all-btn { font-size: 12px; font-weight: 700; border: 1px solid var(--card-border); background: transparent; border-radius: 9999px; padding: 3px 12px; cursor: pointer; color: var(--fg); }
+  .select-all-btn:hover { background: rgba(255,255,255,0.06); }
+
+  .submit-btn { width: 100%; padding: 15px; border: none; border-radius: 9999px; font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 8px; background: var(--primary-bg); color: var(--primary-fg); }
+  .submit-btn:hover { opacity: 0.88; }
 {% endblock %}
 
 {% block content %}
-<div class="form-wrap">
-  <h1 class="gradient-text">센터 개설 문의</h1>
-  <p class="sub">데모 — 실제 접수는 없으며 aiedu 테넌트 DB에만 저장됩니다.</p>
+<div class="wrap">
 
-  <form class="card form-card" method="post">
-    <div class="field">
-      <label for="region">지역 <span class="req">*</span></label>
-      <select id="region" name="region" required>
-        {% for r in regions %}<option value="{{ r }}">{{ r }}</option>{% endfor %}
-      </select>
+  <div class="form-header">
+    <h1 class="gradient-text" style="font-size:22px;">교육 신청서</h1>
+    <div class="card notice-box">
+      본 신청서는 <b>강사 배치 및 커리큘럼 구성을 위한 사전 조사</b>입니다.<br>
+      작성해 주신 내용을 바탕으로 최적의 강사를 배정해 드립니다.<br>
+      ※ 작성 소요 시간: 약 5분 이내
     </div>
-    <div class="field"><label for="org">기관명</label><input type="text" id="org" name="org" required></div>
-    <div class="field"><label for="addr">주소</label><input type="text" id="addr" name="addr"></div>
-    <div class="field"><label for="manager">담당자</label><input type="text" id="manager" name="manager"></div>
-    <div class="field"><label for="tel">연락처</label><input type="tel" id="tel" name="tel"></div>
-    <div class="field"><label for="room_count">강의실 수</label><input type="text" id="room_count" name="room_count"></div>
-    <div class="field"><label for="room_info">강의실 정보 (수용인원 등)</label><input type="text" id="room_info" name="room_info"></div>
+  </div>
 
-    <div class="field">
-      <label>보유 기기</label>
-      <div class="check-group">
-        {% for d in ['노트북', '빔프로젝터', '스마트TV', '없음'] %}
-        <label><input type="checkbox" name="device" value="{{ d }}"> {{ d }}</label>
-        {% endfor %}
+  <form method="POST">
+
+    <div class="card section">
+      <div class="section-title"><span class="badge badge-accent">1</span> 신청 기관 정보</div>
+      <div class="field">
+        <label>관할 시/군 <span class="req">*</span></label>
+        <select name="region" required>
+          <option value="">선택해 주세요</option>
+          {% for r in regions %}<option value="{{ r }}">{{ r }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="field"><label>기관명 <span class="req">*</span></label><input type="text" name="org" placeholder="예: 파주시청, 양주시 복지관" required></div>
+      <div class="field"><label>기관 주소 <span class="req">*</span></label><input type="text" name="addr" placeholder="도로명 주소 입력" required></div>
+      <div class="row2">
+        <div class="field"><label>담당자 성함 / 직책 <span class="req">*</span></label><input type="text" name="manager" placeholder="예: 홍길동 주무관" required></div>
+        <div class="field"><label>담당자 연락처 <span class="req">*</span></label><input type="tel" name="tel" placeholder="예: 010-1234-5678" required></div>
       </div>
     </div>
 
-    <div class="field">
-      <label>교육 대상</label>
-      <div class="check-group">
-        {% for t in ['시니어', '장애인', '청소년', '소상공인'] %}
-        <label><input type="checkbox" name="target" value="{{ t }}"> {{ t }}</label>
-        {% endfor %}
+    <div class="card section">
+      <div class="section-title"><span class="badge badge-accent">2</span> 강의장 정보</div>
+      <div class="field"><label>강의장 수 <span class="req">*</span></label><input type="text" name="room_count" placeholder="예: 2" required></div>
+      <div class="field">
+        <label>강의장 상세 정보 <span class="req">*</span></label>
+        <textarea name="room_info" placeholder="예) ① 컴퓨터실 / 수용인원: 20명 / 데스크탑 15대, 노트북 5대&#10;② 대강당 / 수용인원: 50명 / 태블릿 30대" required></textarea>
+      </div>
+      <div class="field">
+        <label>보유 디바이스 <span class="req">*</span></label>
+        <div class="check-group">
+          <label><input type="checkbox" name="device" value="데스크탑">데스크탑</label>
+          <label><input type="checkbox" name="device" value="노트북">노트북</label>
+          <label><input type="checkbox" name="device" value="태블릿">태블릿</label>
+          <label><input type="checkbox" name="device" value="없음(강사 지참 필요)">없음 (강사 지참 필요)</label>
+        </div>
       </div>
     </div>
 
-    <div class="field"><label for="headcount">예상 인원</label><input type="text" id="headcount" name="headcount"></div>
+    <div class="card section">
+      <div class="section-title"><span class="badge badge-accent">3</span> 수강생 정보</div>
+      <div class="field">
+        <label>주요 수강 대상 <span class="req">*</span></label>
+        <div class="check-group">
+          <label><input type="checkbox" name="target" value="어르신(60대 이상)">어르신 (60대 이상)</label>
+          <label><input type="checkbox" name="target" value="중장년층(40~50대)">중장년층 (40~50대)</label>
+          <label><input type="checkbox" name="target" value="장애인">장애인</label>
+          <label><input type="checkbox" name="target" value="다문화가정">다문화 가정</label>
+          <label><input type="checkbox" name="target" value="일반성인">일반 성인</label>
+          <label><input type="checkbox" name="target" value="기타">기타</label>
+        </div>
+      </div>
+      <div class="field"><label>예상 수강 인원 (회차당) <span class="req">*</span></label><input type="text" name="headcount" placeholder="예: 15명" required></div>
+    </div>
 
-    <div class="field">
-      <label>희망 과정</label>
-      <div class="check-group">
-        {% for course in ['①스마트폰 처음 사용하기', '⑨키오스크와 무인서비스 활용하기', '㉑미술관이 살아있다', '㉵디지털 일자리 준비'] %}
-        <label><input type="checkbox" name="course" value="{{ course }}"> {{ course }}</label>
-        {% endfor %}
+    <div class="card section">
+      <div class="section-title"><span class="badge badge-accent">4</span> 희망 강좌 선택</div>
+      <p style="font-size:13px; color:#cfcfd2; margin-bottom:14px;">수강생 특성에 맞는 강좌를 선택해 주세요. <b>중복 선택 가능</b>합니다.</p>
+
+      {% set course_groups = [
+        ('basic', 'AI디지털 기초', courses_basic),
+        ('life', 'AI디지털 생활', courses_life),
+        ('deep', 'AI디지털 심화', courses_deep),
+      ] %}
+      {% for gid, title, courses in course_groups %}
+      <div class="course-category">
+        <div class="cat-title-row">
+          <span class="cat-title badge-accent">{{ title }}</span>
+          <button type="button" class="select-all-btn" onclick="selectAll('{{ gid }}')">전체 선택</button>
+        </div>
+        <div class="course-checks" id="{{ gid }}">
+          {% for c in courses %}<label><input type="checkbox" name="course" value="{{ c }}">{{ c }}</label>{% endfor %}
+        </div>
+      </div>
+      {% endfor %}
+
+      <p class="gradient-text" style="font-size:14px; margin-top:18px; font-weight:700;">AI디지털 특별과정</p>
+      <p style="font-size:12px; color:var(--muted); margin-bottom:14px; margin-top:4px;">특정 연령층과 직업군을 위한 맞춤형 교육 과정입니다.</p>
+
+      {% set special_groups = [
+        ('kids', '유아를 위한 AI (만 4-5세)', courses_special_kids),
+        ('entrepreneur', '소상공인·자영업자 AI', courses_special_entrepreneur),
+        ('youth', '청소년을 위한 AI', courses_special_youth),
+        ('disabled', '장애인 특화 AI', courses_special_disabled),
+        ('job', '취업준비자 AI', courses_special_job),
+      ] %}
+      {% for gid, title, courses in special_groups %}
+      <div class="course-category">
+        <div class="cat-title-row">
+          <span class="cat-title badge-accent">{{ title }}</span>
+          <button type="button" class="select-all-btn" onclick="selectAll('{{ gid }}')">전체 선택</button>
+        </div>
+        <div class="course-checks" id="{{ gid }}">
+          {% for c in courses %}<label><input type="checkbox" name="course" value="{{ c }}">{{ c }}</label>{% endfor %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div class="card section">
+      <div class="section-title"><span class="badge badge-accent">5</span> 수강생 모집</div>
+      <div class="field">
+        <label>신청하시는 센터에서 자체적으로 수강생 모집이 가능한가요? <span class="req">*</span></label>
+        <div class="check-group">
+          <label><input type="radio" name="recruit" value="가능(자체 모집 가능)" required>가능 (자체 모집 가능)</label>
+          <label><input type="radio" name="recruit" value="부분 가능(홍보 지원 필요)">부분 가능 (홍보 지원 필요)</label>
+          <label><input type="radio" name="recruit" value="불가(운영사 지원 필요)">불가 (운영사 지원 필요)</label>
+        </div>
+      </div>
+      <div class="field">
+        <label>수강생 모집 채널</label>
+        <input type="text" name="recruit_channel" placeholder="예: 기관 SNS, 지역 커뮤니티, 자체 공지 / 없음">
+        <div class="hint">보유하신 모집 채널을 간략히 적어 주세요.</div>
       </div>
     </div>
 
-    <div class="field"><label for="recruit">모집 방식</label><input type="text" id="recruit" name="recruit"></div>
-    <div class="field"><label for="recruit_channel">모집 채널</label><input type="text" id="recruit_channel" name="recruit_channel"></div>
+    <div class="card section">
+      <div class="section-title"><span class="badge badge-accent">6</span> 희망 운영 일정</div>
+      <div class="field">
+        <label>희망 운영 기간 <span class="req">*</span></label>
+        <div class="check-group">
+          {% for m in all_months %}<label><input type="checkbox" name="period" value="{{ m }}">{{ m }}</label>{% endfor %}
+        </div>
+      </div>
+      <div class="field">
+        <label>희망 운영 요일 <span class="req">*</span></label>
+        <div class="check-group">
+          {% for d in all_days %}<label><input type="checkbox" name="day" value="{{ d }}">{{ d }}</label>{% endfor %}
+        </div>
+      </div>
+      <div class="field">
+        <label>희망 운영 시간 <span class="req">*</span></label>
+        <div class="check-group">
+          {% for t in all_times %}<label><input type="checkbox" name="time" value="{{ t }}">{{ t }}</label>{% endfor %}
+        </div>
+      </div>
+    </div>
 
-    <div class="field">
-      <label>희망 운영월</label>
-      <div class="check-group">
-        {% for m in all_months %}<label><input type="checkbox" name="period" value="{{ m }}"> {{ m }}</label>{% endfor %}
+    <div class="card section">
+      <div class="section-title"><span class="badge badge-accent">7</span> 에듀버스 신청</div>
+      <p style="font-size:13px; color:#cfcfd2; margin-bottom:14px;">에듀버스는 강사와 장비를 직접 방문 운영하는 이동형 교육 서비스입니다.</p>
+      <div class="field">
+        <label>에듀버스 운영 희망 여부 <span class="req">*</span></label>
+        <div class="check-group">
+          <label><input type="radio" name="edubus" value="희망함" required onclick="toggleEdubus(true)">희망함</label>
+          <label><input type="radio" name="edubus" value="희망하지 않음" onclick="toggleEdubus(false)">희망하지 않음</label>
+        </div>
       </div>
-    </div>
-    <div class="field">
-      <label>희망 요일</label>
-      <div class="check-group">
-        {% for d in all_days %}<label><input type="checkbox" name="day" value="{{ d }}"> {{ d }}</label>{% endfor %}
-      </div>
-    </div>
-    <div class="field">
-      <label>희망 교시</label>
-      <div class="check-group">
-        {% for t in all_times %}<label><input type="checkbox" name="time" value="{{ t }}"> {{ t }}</label>{% endfor %}
+      <div id="eduBusDetail" style="display:none;">
+        <div class="field"><label>에듀버스 파견 희망 장소 (주소)</label><input type="text" name="edubus_addr" placeholder="예: 경기도 파주시 ○○로 123"></div>
+        <div class="field"><label>에듀버스 파견 희망 시기</label><input type="text" name="edubus_date" placeholder="예: 7월 말, 8월 중순"></div>
       </div>
     </div>
 
-    <div class="field">
-      <label>교육버스 필요</label>
-      <div class="check-group">
-        <label><input type="radio" name="edubus" value="Y"> 필요</label>
-        <label><input type="radio" name="edubus" value="N" checked> 불필요</label>
-      </div>
+    <div class="card section">
+      <div class="section-title"><span class="badge badge-accent">8</span> 기타 요청사항</div>
+      <div class="field"><textarea name="etc" placeholder="추가로 전달하실 내용이 있으시면 자유롭게 기재해 주세요."></textarea></div>
     </div>
-    <div class="field"><label for="edubus_addr">교육버스 승하차 주소</label><input type="text" id="edubus_addr" name="edubus_addr"></div>
-    <div class="field"><label for="edubus_date">교육버스 희망일</label><input type="text" id="edubus_date" name="edubus_date"></div>
-    <div class="field"><label for="etc">기타 요청사항</label><textarea id="etc" name="etc" rows="3"></textarea></div>
 
-    <button type="submit" class="btn btn-primary">제출</button>
+    <button type="submit" class="submit-btn">신청서 제출하기 →</button>
   </form>
+
 </div>
+
+<script>
+  function selectAll(groupId) {
+    const checks = document.querySelectorAll('#' + groupId + ' input[type=checkbox]');
+    const allChecked = [...checks].every(c => c.checked);
+    checks.forEach(c => c.checked = !allChecked);
+  }
+  function toggleEdubus(show) {
+    document.getElementById('eduBusDetail').style.display = show ? 'block' : 'none';
+  }
+</script>
 {% endblock %}

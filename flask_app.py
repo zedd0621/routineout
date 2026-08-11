@@ -119,7 +119,37 @@ def center_admin(tenant):
     conn = get_db(tenant)
     rows = conn.execute('SELECT * FROM responses ORDER BY id DESC').fetchall()
     conn.close()
-    return render_template('center_admin.html', tenant=tenant, rows=rows)
+    return render_template('center_admin.html', tenant=tenant, rows=rows, regions=rec.REGIONS)
+
+
+@app.route('/<tenant>/center-admin/add', methods=['POST'])
+def center_admin_add(tenant):
+    guard = require_tenant(tenant)
+    if guard:
+        return guard
+    f = request.form
+    conn = get_db(tenant)
+    conn.execute('''
+        INSERT INTO responses (
+            submitted_at, region, org, addr, manager, tel,
+            room_count, room_info, device, target, headcount, course,
+            recruit, recruit_channel, period, day, time,
+            edubus, edubus_addr, edubus_date, etc, confirmed
+        ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,0)
+    ''', (
+        datetime.now().strftime('%Y-%m-%d %H:%M:%S') + ' (수기)',
+        f.get('region', ''), f.get('org', ''), f.get('addr', ''),
+        f.get('manager', ''), f.get('tel', ''),
+        f.get('room_count', ''), f.get('room_info', ''),
+        f.get('device', ''), f.get('target', ''), f.get('headcount', ''),
+        f.get('course', ''), f.get('recruit', ''), f.get('recruit_channel', ''),
+        f.get('period', ''), f.get('day', ''), f.get('time', ''),
+        f.get('edubus', ''), f.get('edubus_addr', ''),
+        f.get('edubus_date', ''), f.get('etc', '')
+    ))
+    conn.commit()
+    conn.close()
+    return redirect(url_for('center_admin', tenant=tenant))
 
 
 @app.route('/<tenant>/center-admin/download')
@@ -201,18 +231,14 @@ def instructor_form(tenant):
         conn.close()
         return render_template('done.html', tenant=tenant, message='지원이 접수되었습니다.')
 
-    conn = get_db(tenant)
-    centers = conn.execute(
-        "SELECT region, org FROM responses WHERE confirmed=1 ORDER BY region, org"
-    ).fetchall()
-    conn.close()
-    region_centers = {}
-    for c in centers:
-        region_centers.setdefault(c['region'], []).append(c['org'])
+    centers_data = rec.build_centers_data(tenant)
+    today_counts, window_label = rec.get_today_new_counts_by_region(tenant)
 
     return render_template('instructor_form.html', tenant=tenant,
                             regions=rec.REGIONS,
-                            region_centers=json.dumps(region_centers, ensure_ascii=False),
+                            centers_json=json.dumps(centers_data, ensure_ascii=False),
+                            today_counts=today_counts,
+                            window_label=window_label,
                             all_days=rec.ALL_DAYS, all_times=rec.ALL_TIMES)
 
 
