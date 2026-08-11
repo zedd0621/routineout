@@ -17,6 +17,7 @@
   .video-card h3 { font-size: 15px; font-weight: 800; margin: 10px 0 6px; }
   .video-card p { font-size: 12.5px; color: var(--muted); line-height: 1.6; }
   .video-card.soon { opacity: 0.5; }
+  .video-card video { width: 100%; border-radius: 8px; display: block; background: #000; margin-top: 10px; }
 {% endblock %}
 
 {% block content %}
@@ -35,15 +36,21 @@
 </div>
 
 <div class="video-grid">
-  <div class="card video-card soon">
-    <span class="badge badge-outline">준비 중</span>
-    <h3>02. 강사료 자동계산 시스템</h3>
+  <div class="card video-card">
+    <span class="badge badge-accent">02</span>
+    <h3>강사료 자동계산 시스템</h3>
     <p>복합 급여 규칙과 4대/2대 보험 판정을 자동 계산하는 화면을 보여드립니다.</p>
+    <video controls preload="metadata" playsinline>
+      <source src="{{ url_for('static', filename='videos/instructor-pay-demo.mp4') }}" type="video/mp4">
+    </video>
   </div>
-  <div class="card video-card soon">
-    <span class="badge badge-outline">준비 중</span>
-    <h3>03. 급여명세서 · 재직증명서 자동발급</h3>
+  <div class="card video-card">
+    <span class="badge badge-accent">03</span>
+    <h3>급여명세서 · 재직증명서 자동발급</h3>
     <p>요청 시점에 즉시 계산해 발급하는 흐름을 보여드립니다.</p>
+    <video controls preload="metadata" playsinline>
+      <source src="{{ url_for('static', filename='videos/payslip-demo.mp4') }}" type="video/mp4">
+    </video>
   </div>
   <div class="card video-card soon">
     <span class="badge badge-outline">준비 중</span>
