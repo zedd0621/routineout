@@ -1,55 +1,53 @@
 /* ============================================================
-   DESIGN SYSTEM — Dark Radial + Neon Lime Gradient
-   기반: Sigma-UI(shadcn/ui) 구조 레퍼런스 + 라임/블랙 그라디언트 커스텀
-   사용법: 아래 <link> 태그를 각 HTML의 <head>에 추가하면 이 파일의
-   토큰/클래스를 그대로 쓸 수 있다.
+   DESIGN SYSTEM — Flat Black / Linear-style Monochrome
+   레퍼런스: linear.app 실제 마케팅 페이지(2026) — 순검정 배경, 그라디언트 없는
+   굵은 화이트 타이포, 화이트 필 버튼, 헤어라인 구분선. 컬러는 상태/카테고리
+   표시(뱃지 dot)에만 최소한으로 쓰고 브랜드 액센트로는 안 쓴다.
    <link rel="stylesheet" href="{{ url_for('static', filename='theme.css') }}">
    ============================================================ */
 
 :root {
   /* 색상 토큰 */
-  --fg: #f5f5f5;                 /* 기본 텍스트 */
-  --muted: #8b8b8f;              /* 보조/설명 텍스트 */
-  --card-bg: rgba(255,255,255,0.035);
-  --card-border: rgba(255,255,255,0.06);
+  --bg: #0a0a0a;                 /* 순검정, 그라디언트 없음 */
+  --fg: #f7f7f7;                 /* 기본 텍스트 */
+  --muted: #8a8a8f;              /* 보조/설명 텍스트 */
+  --card-bg: rgba(255,255,255,0.04);
+  --card-border: rgba(255,255,255,0.09);
   --danger: #f28b8b;
   --danger-border: rgba(242,139,139,0.25);
 
-  /* 포인트 컬러 — 라임 그라디언트 (버튼/제목/핵심 숫자 전용, 남용 금지) */
-  --lime-a: #e2ff6b;
-  --lime-b: #7ad600;
-  --lime-gradient: linear-gradient(135deg, var(--lime-a), var(--lime-b));
+  /* 프라이머리 — 컬러 액센트 대신 화이트 필(고대비)을 유일한 강조 수단으로 사용 */
+  --primary-bg: #ffffff;
+  --primary-fg: #0a0a0a;
+
+  /* 상태/카테고리 전용 세미틱 컬러 — 브랜드 액센트가 아니라 구분용 점(dot)에만 사용 */
+  --status-a: #f2a13b; /* 예: 대기/주의 */
+  --status-b: #4fc3a1; /* 예: 정상/완료 */
+  --status-c: #e0668c; /* 예: 강조/신규 */
 
   /* 반경 스케일 */
-  --radius-card: 20px;
-  --radius-field: 12px;
+  --radius-card: 14px;
+  --radius-field: 8px;
   --radius-pill: 9999px;
 }
 
 * { box-sizing: border-box; }
 
-/* 배경 — 방사형 그라디언트 (좌상단 따뜻한 톤, 우하단 차가운 톤) */
 body {
-  font-family: 'Noto Sans KR', 'Inter', sans-serif;
+  font-family: 'Noto Sans KR', -apple-system, 'Segoe UI', sans-serif;
   color: var(--fg);
-  background-color: #08090a;
-  background-image:
-    radial-gradient(ellipse 900px 600px at 12% 0%, rgba(90,70,60,0.35), transparent 60%),
-    radial-gradient(ellipse 700px 500px at 100% 100%, rgba(40,45,50,0.25), transparent 60%);
-  background-attachment: fixed;
+  background: var(--bg);
   min-height: 100vh;
 }
 
-/* — 그라디언트 텍스트 (제목, 핵심 숫자, 강조 단어에만 사용) — */
+/* — 헤드라인: 그라디언트 없이 굵은 화이트, 타이트한 자간·행간 — */
 .gradient-text {
-  background: var(--lime-gradient);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: transparent;
+  color: var(--fg);
+  font-weight: 800;
+  letter-spacing: -0.01em;
 }
 
-/* — 카드: 헤어라인으로 구분, 배경 거의 안 보임, 큰 radius — */
+/* — 카드: 헤어라인으로만 구분, 배경 거의 안 보임 — */
 .card {
   background: var(--card-bg);
   border: 1px solid var(--card-border);
@@ -60,14 +58,15 @@ body {
 /* — 버튼 — */
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-  height: 38px; padding: 0 16px; border-radius: var(--radius-pill);
+  height: 36px; padding: 0 16px; border-radius: var(--radius-pill);
   font-size: 13px; font-weight: 600; cursor: pointer;
-  border: 1px solid var(--card-border); text-decoration: none;
+  border: 1px solid transparent; text-decoration: none;
+  transition: opacity 0.15s ease, background-color 0.15s ease;
 }
-.btn-primary { background: var(--lime-gradient); color: #10160a; border-color: transparent; }
-.btn-primary:hover { filter: brightness(1.08); }
-.btn-outline { background: rgba(255,255,255,0.03); color: var(--fg); }
-.btn-outline:hover { background: rgba(255,255,255,0.07); }
+.btn-primary { background: var(--primary-bg); color: var(--primary-fg); }
+.btn-primary:hover { opacity: 0.88; }
+.btn-outline { background: transparent; color: var(--muted); border-color: var(--card-border); }
+.btn-outline:hover { color: var(--fg); border-color: rgba(255,255,255,0.22); }
 .btn-danger { background: transparent; color: var(--danger); border-color: var(--danger-border); }
 .btn-danger:hover { background: rgba(242,139,139,0.08); }
 .btn-sm { height: 30px; padding: 0 12px; font-size: 12px; }
@@ -77,9 +76,11 @@ body {
   display: inline-flex; align-items: center; border-radius: var(--radius-pill);
   padding: 2px 10px; font-size: 11.5px; font-weight: 700; border: 1px solid var(--card-border);
 }
-.badge-accent { background: var(--lime-gradient); color: #10160a; border-color: transparent; }
+.badge-accent { background: var(--primary-bg); color: var(--primary-fg); border-color: transparent; }
 .badge-outline { color: var(--fg); background: rgba(255,255,255,0.05); }
 .badge-muted { color: var(--muted); }
+/* 상태 점(dot) — 뱃지 앞에 붙여서 카테고리를 색으로 구분할 때만 사용 */
+.badge .dot { width: 6px; height: 6px; border-radius: 50%; margin-right: 6px; flex-shrink: 0; }
 
 /* — 인풋/셀렉트/텍스트에어리어 — */
 .field label { display: block; font-size: 13.5px; font-weight: 600; color: #cfcfd2; margin-bottom: 6px; }
@@ -87,10 +88,10 @@ body {
 input[type=text], input[type=tel], input[type=password], textarea, select {
   width: 100%; border: 1px solid var(--card-border); border-radius: var(--radius-field);
   padding: 10px 14px; font-size: 14px; color: var(--fg);
-  background: rgba(255,255,255,0.04); font-family: inherit;
+  background: rgba(255,255,255,0.035); font-family: inherit;
 }
 input::placeholder, textarea::placeholder { color: var(--muted); }
-input:focus, textarea:focus, select:focus { outline: none; border-color: rgba(226,255,107,0.45); }
+input:focus, textarea:focus, select:focus { outline: none; border-color: rgba(255,255,255,0.4); }
 
 /* select는 OS 네이티브 드롭다운(옵션 목록)이 흰 배경으로 뜨는 경우가 많아,
    위의 어두운 반투명 배경 + 밝은 글자색 조합을 쓰면 옵션 목록에서 흰 배경에
@@ -109,21 +110,21 @@ select, select option {
   color: #cfcfd2; background: rgba(255,255,255,0.02);
 }
 .check-group label:has(input:checked) {
-  border-color: transparent; background: var(--lime-gradient); color: #10160a; font-weight: 700;
+  border-color: transparent; background: var(--primary-bg); color: var(--primary-fg); font-weight: 700;
 }
-.check-group input { accent-color: var(--lime-b); }
+.check-group input { accent-color: var(--fg); }
 
-/* — 아바타 (원형, 그라디언트 배경) — */
+/* — 아바타 — */
 .avatar {
-  width: 36px; height: 36px; border-radius: 50%; background: var(--lime-gradient);
-  color: #10160a; display: flex; align-items: center; justify-content: center;
+  width: 36px; height: 36px; border-radius: 50%; background: var(--primary-bg);
+  color: var(--primary-fg); display: flex; align-items: center; justify-content: center;
   font-weight: 700; font-size: 13px; flex-shrink: 0;
 }
 
-/* — KPI 카드 — */
+/* — KPI 카드: 숫자는 표 형태 정렬을 위해 tabular-nums — */
 .kpi-card { border: 1px solid var(--card-border); border-radius: var(--radius-card); padding: 20px; }
 .kpi-card .klabel { font-size: 13px; color: var(--muted); margin-bottom: 8px; }
-.kpi-card .kvalue .num { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; }
+.kpi-card .kvalue .num { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
 .kpi-card .kvalue .unit { font-size: 14px; font-weight: 400; color: var(--muted); margin-left: 3px; }
 
 /* — 좌측 트리 필터 — */
@@ -133,15 +134,15 @@ select, select option {
   display: flex; justify-content: space-between; align-items: center;
 }
 .tree-item:hover { background: rgba(255,255,255,0.06); }
-.tree-item.active { background: var(--lime-gradient); color: #10160a; font-weight: 700; }
-.tree-item.active .count { color: #10160a; opacity: 0.65; }
+.tree-item.active { background: var(--primary-bg); color: var(--primary-fg); font-weight: 700; }
+.tree-item.active .count { color: var(--primary-fg); opacity: 0.65; }
 .tree-item .count { font-size: 11px; color: var(--muted); }
 
 /* — 테이블 — */
 table { border-collapse: collapse; width: 100%; font-size: 12.5px; }
 th { background: rgba(255,255,255,0.04); color: var(--muted); padding: 10px 14px; text-align: left; font-weight: 700; }
-td { padding: 9px 14px; border-bottom: 1px solid var(--card-border); color: #d8d8db; }
+td { padding: 9px 14px; border-bottom: 1px solid var(--card-border); color: #d8d8db; font-variant-numeric: tabular-nums; }
 tr:hover td { background: rgba(255,255,255,0.03); }
 
-/* — 유일한 컬러 포인트: 강조 그래프/글로우 카드 — */
-.glow-card { background: radial-gradient(ellipse at bottom, rgba(186,255,41,0.16), rgba(255,255,255,0.035) 70%); }
+/* — glow-card는 더 이상 안 씀(순검정 모노크롬 톤에 안 맞음) — 카드와 동일하게 취급 */
+.glow-card { background: var(--card-bg); }
