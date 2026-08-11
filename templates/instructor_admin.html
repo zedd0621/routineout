@@ -2,6 +2,7 @@
 
 {% block title %}강사지원 현황 - routineout{% endblock %}
 {% block nav %}
+<a href="{{ url_for('instructor_admin_download', tenant=tenant) }}" class="btn btn-outline">엑셀 다운로드</a>
 <a href="{{ url_for('tenant_dashboard', tenant=tenant) }}" class="btn btn-outline">대시보드</a>
 <a href="{{ url_for('logout') }}" class="btn btn-outline">로그아웃</a>
 {% endblock %}

@@ -1,3 +1,5 @@
+import csv
+import io
 import json
 from datetime import datetime
 from urllib.parse import quote
@@ -98,7 +100,15 @@ def center_form(tenant):
 
     return render_template('center_form.html', tenant=tenant,
                             regions=rec.REGIONS, all_days=rec.ALL_DAYS,
-                            all_times=rec.ALL_TIMES, all_months=rec.ALL_MONTHS)
+                            all_times=rec.ALL_TIMES, all_months=rec.ALL_MONTHS,
+                            courses_basic=rec.COURSES_BASIC,
+                            courses_life=rec.COURSES_LIFE,
+                            courses_deep=rec.COURSES_DEEP,
+                            courses_special_kids=rec.COURSES_SPECIAL_KIDS,
+                            courses_special_entrepreneur=rec.COURSES_SPECIAL_ENTREPRENEUR,
+                            courses_special_youth=rec.COURSES_SPECIAL_YOUTH,
+                            courses_special_disabled=rec.COURSES_SPECIAL_DISABLED,
+                            courses_special_job=rec.COURSES_SPECIAL_JOB)
 
 
 @app.route('/<tenant>/center-admin', methods=['GET'])
@@ -110,6 +120,28 @@ def center_admin(tenant):
     rows = conn.execute('SELECT * FROM responses ORDER BY id DESC').fetchall()
     conn.close()
     return render_template('center_admin.html', tenant=tenant, rows=rows)
+
+
+@app.route('/<tenant>/center-admin/download')
+def center_admin_download(tenant):
+    guard = require_tenant(tenant)
+    if guard:
+        return guard
+    conn = get_db(tenant)
+    c = conn.execute('SELECT * FROM responses ORDER BY id DESC')
+    rows = c.fetchall()
+    col_names = rows[0].keys() if rows else []
+    conn.close()
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(col_names)
+    for r in rows:
+        writer.writerow([r[k] for k in col_names])
+    return Response(
+        output.getvalue().encode('utf-8-sig'),
+        mimetype='text/csv',
+        headers={'Content-Disposition': f'attachment; filename={tenant}_centers.csv'}
+    )
 
 
 @app.route('/<tenant>/center-admin/confirm/<int:row_id>', methods=['POST'])
@@ -212,6 +244,35 @@ def instructor_admin(tenant):
         })
 
     return render_template('instructor_admin.html', tenant=tenant, rows=parsed_rows)
+
+
+@app.route('/<tenant>/instructor-admin/download')
+def instructor_admin_download(tenant):
+    guard = require_tenant(tenant)
+    if guard:
+        return guard
+    conn = get_db(tenant)
+    rows = conn.execute('SELECT * FROM instructor_applications ORDER BY id DESC').fetchall()
+    conn.close()
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(['id', '제출일시', '이름', '연락처', '강사구분', '지망순위', '지역', '센터명', '요일', '시간'])
+    for row in rows:
+        choices = json.loads(row['choices']) if row['choices'] else []
+        if not choices:
+            writer.writerow([row['id'], row['submitted_at'], row['name'], row['tel'], row['role'], '', '', '', '', ''])
+        for ch in choices:
+            writer.writerow([
+                row['id'], row['submitted_at'], row['name'], row['tel'], row['role'],
+                ch.get('rank', ''), ch.get('region', ''), ch.get('org', ''),
+                ', '.join(ch.get('days', [])), ', '.join(ch.get('times', []))
+            ])
+    return Response(
+        output.getvalue().encode('utf-8-sig'),
+        mimetype='text/csv',
+        headers={'Content-Disposition': f'attachment; filename={tenant}_instructor_applications.csv'}
+    )
 
 
 @app.route('/<tenant>/instructor-admin/delete/<int:row_id>', methods=['POST'])
@@ -383,6 +444,28 @@ def paycheck_admin(tenant):
                             available_months=available_months, consents=masked_consents,
                             payroll_rows=payroll_rows, payroll_totals=payroll_totals,
                             payroll_months=payroll_months)
+
+
+@app.route('/<tenant>/paycheck-admin/download')
+def paycheck_admin_download(tenant):
+    guard = require_tenant(tenant)
+    if guard:
+        return guard
+    conn = get_db(tenant)
+    c = conn.execute('SELECT * FROM paycheck_consents ORDER BY id DESC')
+    rows = c.fetchall()
+    col_names = rows[0].keys() if rows else []
+    conn.close()
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(col_names)
+    for r in rows:
+        writer.writerow([r[k] for k in col_names])
+    return Response(
+        output.getvalue().encode('utf-8-sig'),
+        mimetype='text/csv',
+        headers={'Content-Disposition': f'attachment; filename={tenant}_paycheck_consents.csv'}
+    )
 
 
 # ── 급여명세서 (강사 본인 발급 + 관리자 열람) ──────────────────────

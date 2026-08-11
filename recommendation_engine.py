@@ -17,6 +17,166 @@ ALL_DAYS = ['월', '화', '수', '목', '금', '토']
 ALL_TIMES = ['1교시(10:00~12:00)', '2교시(13:00~15:00)', '3교시(16:00~18:00)']
 ALL_MONTHS = ['7월', '8월', '9월', '10월', '11월', '12월']
 
+COURSES_BASIC = [
+    '①스마트폰 처음 사용하기', '②스마트폰 첫걸음과 AI 음성검색',
+    '③스마트폰으로 즐기는 디지털 라이프', '④어서와! AI는 처음이지~',
+    '⑤My AI Day', '⑥AI 아틀리에', '⑦나의 첫 AI라이프'
+]
+COURSES_LIFE = [
+    '⑧카카오톡과 디지털 소통하기', '⑨키오스크와 무인서비스 활용하기',
+    '⑩모바일 생활서비스 활용하기', '⑪스마트폰으로 건강관리하기',
+    '⑫AI와 함께하는 편리한 하루', '⑬AI로 더 즐거워지는 소통',
+    '⑭AI로 만드는 추억 저장소', '⑮AI 비서로 일과 생산성 높이기'
+]
+COURSES_DEEP = [
+    '⑯스마트폰 사진과 영상 활용하기', '⑰디지털 윤리와 안전한 인터넷 생활',
+    '⑱스마트폰으로 만드는 디지털 기록', '⑲클릭으로 완성하는 AI 디자인',
+    '⑳AI로 완성하는 첫 전자책'
+]
+COURSES_SPECIAL_KIDS = [
+    '㉑미술관이 살아있다 - AI와 함께하는 미술 탐험',
+    '㉒동물 친구들을 찾아라 - AI로 배우는 자연 관찰',
+    '㉓색깔 마법사 - AI와 함께 만드는 색감 놀이',
+    '㉔음악이 흘러나와요 - AI로 듣고 만드는 음악 세상'
+]
+COURSES_SPECIAL_ENTREPRENEUR = [
+    '㉕AI로 강화하는 소상공인 SNS 마케팅',
+    '㉖무인판매와 AI 결제시스템 활용하기',
+    '㉗매장 운영 데이터 분석과 경영 전략',
+    '㉘고객 만족 높이는 AI 챗봇 활용법',
+    '㉙온라인 쇼핑몰 운영 디지털 전략'
+]
+COURSES_SPECIAL_YOUTH = [
+    '㉚AI와 함께 시작하는 코딩의 첫 걸음',
+    '㉛내 꿈을 담은 AI 프로젝트 만들기',
+    '㉜미래 직업 세계를 보여주는 AI 기술',
+    '㉝게임과 앱으로 배우는 AI 원리',
+    '㉞창의력을 키우는 AI 디지털 창작'
+]
+COURSES_SPECIAL_DISABLED = [
+    '㉟접근성을 높인 AI 디지털 생활',
+    '㊱시각장애인을 위한 스마트폰 음성 기술',
+    '㊲청각장애인을 위한 자막 및 알림 활용',
+    '㊳신체 장애인을 위한 음성·터치 제어',
+    '㊴맞춤형 AI 보조기술과 일상 활용'
+]
+COURSES_SPECIAL_JOB = [
+    '㊵디지털 일자리 준비! AI 기초 스킬 마스터',
+    '㊶직업인을 위한 AI 생산성 도구 완전 가이드',
+    '㊷4차산업혁명 시대의 직업 이해와 준비',
+    '㊸AI 시대 경쟁력 있는 이력서 만들기',
+    '㊹언택트 시대 디지털 면접 준비 전략'
+]
+
+
+def extract_capacity(room_info):
+    if not room_info:
+        return ''
+    caps = re.findall(r'수용\s*인원\s*[:：]?\s*(\d+)\s*명', room_info)
+    if caps:
+        return ' / '.join(f'{c}명' for c in caps)
+    return ''
+
+
+def extract_devices(device_text):
+    if not device_text:
+        return ''
+    parts = [p.strip() for p in device_text.split(',')]
+    real_devices = [p for p in parts if p and '없음' not in p]
+    return ', '.join(real_devices)
+
+
+def extract_courses(course_text):
+    if not course_text:
+        return []
+    items = [c.strip() for c in course_text.split(',') if c.strip()]
+    cleaned = [re.sub(r'^[①-⑳]\s*', '', c) for c in items]
+    return cleaned
+
+
+def build_centers_data(tenant):
+    """확정된(confirmed=1) 센터를 region -> org -> 상세정보 구조로 빌드.
+    강사 지원 폼에서 지역/센터 선택 시 실시간으로 보여줄 상세 카드용."""
+    conn = get_db(tenant)
+    rows = conn.execute(
+        "SELECT * FROM responses WHERE confirmed = 1 ORDER BY region, org"
+    ).fetchall()
+    conn.close()
+
+    data = {}
+    for row in rows:
+        region = row['region']
+        org = row['org']
+        months = parse_list(row['period'])
+        days = parse_list(row['day'])
+        times = parse_list(row['time'])
+
+        months_sorted = [m for m in ALL_MONTHS if m in months]
+        month_label = '/'.join(m.replace('월', '') for m in months_sorted) + '월 운영예정' if months_sorted else '운영월 미정'
+
+        if region not in data:
+            data[region] = {}
+
+        data[region][org] = {
+            'month_label': month_label,
+            'days': [d for d in ALL_DAYS if d in days] if days else [],
+            'times': [t for t in ALL_TIMES if t in times] if times else [],
+            'addr': row['addr'] or '',
+            'room_count': row['room_count'] or '',
+            'room_info': row['room_info'] or '',
+            'capacity': extract_capacity(row['room_info']),
+            'device': extract_devices(row['device']),
+            'target': row['target'] or '',
+            'headcount': row['headcount'] or '',
+            'courses': extract_courses(row['course']),
+            'etc': row['etc'] or ''
+        }
+
+    return data
+
+
+def get_kst_window():
+    from datetime import datetime, timedelta
+    now_utc = datetime.utcnow()
+    now_kst = now_utc + timedelta(hours=9)
+    today_9am_kst = now_kst.replace(hour=9, minute=0, second=0, microsecond=0)
+    window_end_kst = today_9am_kst
+    window_start_kst = today_9am_kst - timedelta(hours=24)
+    window_start_utc = window_start_kst - timedelta(hours=9)
+    window_end_utc = window_end_kst - timedelta(hours=9)
+    return window_start_utc, window_end_utc, window_start_kst, window_end_kst
+
+
+def get_today_new_counts_by_region(tenant):
+    """최근 24시간(KST 09시 기준)간 신규 강사지원 건수를 지역별로 집계."""
+    window_start_utc, window_end_utc, window_start_kst, window_end_kst = get_kst_window()
+    window_start_str = window_start_utc.strftime('%Y-%m-%d %H:%M:%S')
+    window_end_str = window_end_utc.strftime('%Y-%m-%d %H:%M:%S')
+    window_label = '{} ~ {}'.format(
+        window_start_kst.strftime('%m월 %d일 %H:%M'),
+        window_end_kst.strftime('%m월 %d일 %H:%M')
+    )
+
+    conn = get_db(tenant)
+    rows = conn.execute(
+        "SELECT choices FROM instructor_applications WHERE submitted_at >= ? AND submitted_at < ?",
+        (window_start_str, window_end_str)
+    ).fetchall()
+    conn.close()
+
+    counts = {r: 0 for r in REGIONS}
+    for row in rows:
+        try:
+            choices = json.loads(row['choices']) if row['choices'] else []
+        except Exception:
+            choices = []
+        seen = {ch.get('region') for ch in choices if ch.get('region')}
+        for r in seen:
+            if r in counts:
+                counts[r] += 1
+
+    return counts, window_label
+
 
 def interview_excel_path(tenant):
     return os.path.join(tenant_dir(tenant), 'interview_results.xlsx')
