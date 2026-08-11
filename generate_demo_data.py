@@ -10,6 +10,8 @@ from datetime import datetime, timedelta
 from openpyxl import Workbook
 
 from tenant_db import init_db, get_db, paycheck_folder, tenant_dir
+import recommendation_engine as rec
+import payroll_engine as pay
 
 TENANT = 'aiedu'
 INSTRUCTOR_COUNT = 100  # 기존 10명 → 10배 확장
@@ -51,24 +53,47 @@ def _gen_fake_instructors(n):
 
 FAKE_INSTRUCTORS = _gen_fake_instructors(INSTRUCTOR_COUNT)
 
-FAKE_CENTERS = [
-    {'region': '김포', 'org': '가짜김포행복복지관', 'addr': '경기도 김포시 가짜로 12',
-     'manager': '문담당', 'tel': '031-111-2222', 'day': '월,수,금', 'time': '1교시(10:00~12:00),2교시(13:00~15:00)'},
-    {'region': '고양', 'org': '가짜고양주민센터', 'addr': '경기도 고양시 가짜로 34',
-     'manager': '서담당', 'tel': '031-222-3333', 'day': '화,목', 'time': '2교시(13:00~15:00),3교시(16:00~18:00)'},
-    {'region': '파주', 'org': '가짜파주노인복지관', 'addr': '경기도 파주시 가짜로 56',
-     'manager': '이담당', 'tel': '031-333-4444', 'day': '월,화,수', 'time': '1교시(10:00~12:00)'},
-    {'region': '양주', 'org': '가짜양주복지센터', 'addr': '경기도 양주시 가짜로 78',
-     'manager': '김담당', 'tel': '031-444-5555', 'day': '월,수', 'time': '2교시(13:00~15:00)'},
-    {'region': '의정부', 'org': '가짜의정부주민센터', 'addr': '경기도 의정부시 가짜로 90',
-     'manager': '박담당', 'tel': '031-555-6666', 'day': '화,목,금', 'time': '1교시(10:00~12:00),3교시(16:00~18:00)'},
-    {'region': '동두천', 'org': '가짜동두천복지관', 'addr': '경기도 동두천시 가짜로 11',
-     'manager': '최담당', 'tel': '031-666-7777', 'day': '월,화', 'time': '2교시(13:00~15:00),3교시(16:00~18:00)'},
-    {'region': '남양주', 'org': '가짜남양주주민센터', 'addr': '경기도 남양주시 가짜로 22',
-     'manager': '정담당', 'tel': '031-777-8888', 'day': '수,금', 'time': '1교시(10:00~12:00)'},
-    {'region': '구리', 'org': '가짜구리복지관', 'addr': '경기도 구리시 가짜로 33',
-     'manager': '강담당', 'tel': '031-888-9999', 'day': '월,수,금', 'time': '3교시(16:00~18:00)'},
-]
+ORG_TYPES = ['복지관', '주민센터', '문화센터', '평생학습관', '청소년수련관', '노인종합복지관', '보건소', '도서관']
+ORG_PREFIXES = ['중앙', '동부', '서부', '남부', '신도시']
+ALL_COURSE_POOL = (rec.COURSES_BASIC + rec.COURSES_LIFE + rec.COURSES_DEEP)
+
+
+def _gen_fake_centers():
+    # 지역당 5개씩 만든다 — 드롭다운이 실제로 "선택할 게 있는" 수준이 되려면
+    # 최소 이 정도는 있어야 한다는 피드백 반영.
+    rng = random.Random(13)
+    centers = []
+    for region in rec.REGIONS:
+        types = rng.sample(ORG_TYPES, k=5)
+        for prefix, otype in zip(ORG_PREFIXES, types):
+            org = f'가짜{region}{prefix}{otype}'
+            days = ','.join(sorted(rng.sample(rec.ALL_DAYS, k=rng.randint(2, 4)),
+                                    key=rec.ALL_DAYS.index))
+            times = ','.join(sorted(rng.sample(rec.ALL_TIMES, k=rng.randint(1, 3)),
+                                     key=rec.ALL_TIMES.index))
+            months = ','.join(sorted(rng.sample(rec.ALL_MONTHS, k=rng.randint(1, 3)),
+                                      key=rec.ALL_MONTHS.index))
+            courses = ', '.join(rng.sample(ALL_COURSE_POOL, k=rng.randint(2, 4)))
+            centers.append({
+                'region': region,
+                'org': org,
+                'addr': f'경기도 {region}시 가짜로 {rng.randint(1, 200)}',
+                'manager': rng.choice(SURNAMES) + '담당',
+                'tel': f'031-{rng.randint(200,999)}-{rng.randint(1000,9999)}',
+                'day': days,
+                'time': times,
+                'period': months,
+                'course': courses,
+                'room_count': str(rng.randint(1, 3)),
+                'room_info': f'수용인원: {rng.choice([15,20,25,30])}명',
+                'device': rng.choice(['데스크탑', '노트북', '태블릿', '데스크탑, 노트북']),
+                'target': rng.choice(['어르신(60대 이상)', '중장년층(40~50대)', '일반성인', '장애인']),
+                'headcount': f'{rng.randint(10,25)}명',
+            })
+    return centers
+
+
+FAKE_CENTERS = _gen_fake_centers()
 
 TIME_SLOTS = [
     (10, 0, 12, 0, '1교시(10:00~12:00)'),
@@ -246,9 +271,9 @@ def seed_db():
         ''', (
             datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
             center['region'], center['org'], center['addr'], center['manager'], center['tel'],
-            '2개', '수용인원: 20명', '노트북, 빔프로젝터', '시니어', '20명',
-            '①스마트폰 처음 사용하기, ②스마트폰 첫걸음과 AI 음성검색',
-            '자체모집', '현수막', '7월', center['day'], center['time'],
+            center['room_count'], center['room_info'], center['device'], center['target'],
+            center['headcount'], center['course'],
+            '자체모집', '현수막', center['period'], center['day'], center['time'],
             'N', '', '', '데모용 가짜 데이터'
         ))
 
@@ -283,6 +308,52 @@ def seed_db():
     conn.close()
 
 
+BANKS = ['국민은행', '신한은행', '우리은행', '하나은행', '농협은행', '카카오뱅크', '토스뱅크']
+
+
+def seed_consents(target_month):
+    """가상 데이터이므로 근무기록이 있는 전원이 급여내역을 확인·동의했다고 가정하고 채운다."""
+    pf = paycheck_folder(TENANT)
+    conn = get_db(TENANT)
+    conn.execute('DELETE FROM paycheck_consents')
+
+    worklog = pay.load_worklog(pf, target_month)
+    prior = pay.load_worklog(pf, pay.prev_month_str(target_month))
+    rng = random.Random(17)
+
+    inst_by_name = {i['name']: i for i in FAKE_INSTRUCTORS}
+
+    for name, entries in worklog.items():
+        inst = inst_by_name.get(name)
+        if not inst:
+            continue
+        daily_total = sum(e['daily_pay'] for e in entries)
+        _, weekly_total = pay.calc_weekly_holiday(entries, target_month, prior_entries=prior.get(name, []))
+        total_pay = daily_total + weekly_total
+        is_four, _, _ = pay.judge_insurance(entries, target_month)
+        insurance_type = '4대보험' if is_four else '2대보험(고용·산재)'
+        tel_last4 = inst['tel'][-4:]
+        bank_name = rng.choice(BANKS)
+        account_number = f'{rng.randint(100,999)}-{rng.randint(10,99)}-{rng.randint(100000,999999)}'
+        # consented_at: 정산월 말일 근처로 그럴듯하게
+        consented_at = f'{target_month}-27 {rng.randint(9,18):02d}:{rng.randint(0,59):02d}:00'
+
+        conn.execute('''
+            INSERT INTO paycheck_consents
+            (consented_at, name, birth, tel_last4, target_month, total_pay,
+             ip_address, snapshot_json, bank_name, account_number, insurance_type)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (
+            consented_at, name, inst['birth'], tel_last4, target_month, int(total_pay),
+            f'{rng.randint(10,220)}.{rng.randint(0,255)}.{rng.randint(0,255)}.{rng.randint(0,255)}',
+            json.dumps({'demo': True}, ensure_ascii=False),
+            bank_name, account_number, insurance_type
+        ))
+
+    conn.commit()
+    conn.close()
+
+
 def main():
     random.seed(42)
     tdir = tenant_dir(TENANT)
@@ -293,6 +364,7 @@ def main():
     make_worklog('2026-07', os.path.join(pf, 'worklog_2026-07.xlsx'))
     make_interview_results(os.path.join(tdir, 'interview_results.xlsx'))
     seed_db()
+    seed_consents('2026-07')
     print('demo data generated for tenant:', TENANT)
 
 

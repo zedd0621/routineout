@@ -9,12 +9,32 @@
 
 {% block extra_style %}
   .section-title { margin-top: 32px; margin-bottom: 12px; font-size: 15px; color: var(--muted); }
+  .status-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 16px 0 24px; }
+  .search-box { max-width: 320px; margin-bottom: 12px; }
+  .search-box input { width: 100%; height: 38px; padding: 0 14px; border-radius: 9999px; border: 1px solid var(--card-border); background: var(--card-bg); color: var(--fg); font-size: 13px; }
 {% endblock %}
 
 {% block content %}
 <h1 class="gradient-text">급여확인 어드민</h1>
-<p style="color: var(--muted);">집계 대상월: {{ payroll_months|join(', ') if payroll_months else '없음' }} · 개인정보는 마스킹 처리됩니다.</p>
+<p style="color: var(--muted);">개인정보는 마스킹 처리됩니다.</p>
 
+<h2 class="section-title" style="margin-top:16px;">현재 등록 현황</h2>
+<div class="status-grid">
+  <div class="kpi-card">
+    <div class="klabel">등록된 강사 수</div>
+    <div class="kvalue"><span class="num">{{ instructor_count }}</span><span class="unit">명</span></div>
+  </div>
+  <div class="kpi-card">
+    <div class="klabel">업로드된 근무일지 월</div>
+    <div class="kvalue"><span class="num">{{ available_months|length }}</span><span class="unit">개월</span></div>
+  </div>
+  <div class="kpi-card">
+    <div class="klabel">총 동의 건수</div>
+    <div class="kvalue"><span class="num">{{ consents|length }}</span><span class="unit">건</span></div>
+  </div>
+</div>
+
+<h2 class="section-title">집계 대상월: {{ payroll_months|join(', ') if payroll_months else '없음' }}</h2>
 <div class="card" style="overflow-x: auto;">
 <table>
   <thead><tr><th>이름</th><th>기본수당</th><th>강의수당</th><th>인원가산</th><th>주휴수당</th><th>합계</th><th>보험구분</th></tr></thead>
@@ -50,9 +70,10 @@
 </div>
 
 <h2 class="section-title">급여내역 확인 동의 이력</h2>
+<div class="search-box"><input type="text" id="consentSearch" placeholder="이름, 대상월로 검색" onkeyup="filterConsents()"></div>
 <div class="card" style="overflow-x: auto;">
-<table>
-  <thead><tr><th>확인일시</th><th>이름</th><th>대상월</th><th>지급액</th><th>보험구분</th></tr></thead>
+<table id="consentTable">
+  <thead><tr><th>확인일시</th><th>이름</th><th>대상월</th><th>지급액</th><th>은행</th><th>계좌번호</th><th>보험구분</th></tr></thead>
   <tbody>
     {% for c in consents %}
     <tr>
@@ -60,12 +81,23 @@
       <td>{{ c.name }}</td>
       <td>{{ c.target_month }}</td>
       <td>{{ '{:,}'.format(c.total_pay) }}</td>
+      <td>{{ c.bank_name }}</td>
+      <td>{{ c.account_number }}</td>
       <td>{{ c.insurance_type }}</td>
     </tr>
     {% else %}
-    <tr><td colspan="5" style="color: var(--muted);">동의 이력이 없습니다.</td></tr>
+    <tr><td colspan="7" style="color: var(--muted);">동의 이력이 없습니다.</td></tr>
     {% endfor %}
   </tbody>
 </table>
 </div>
+
+<script>
+  function filterConsents() {
+    const input = document.getElementById('consentSearch').value.toLowerCase();
+    document.querySelectorAll('#consentTable tbody tr').forEach(row => {
+      row.style.display = row.textContent.toLowerCase().includes(input) ? '' : 'none';
+    });
+  }
+</script>
 {% endblock %}

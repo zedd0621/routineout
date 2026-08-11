@@ -2,42 +2,164 @@
 
 {% block title %}강사지원 현황 - routineout{% endblock %}
 {% block nav %}
-<a href="{{ url_for('instructor_admin_download', tenant=tenant) }}" class="btn btn-outline">엑셀 다운로드</a>
+<a href="{{ url_for('instructor_admin_download', tenant=tenant) }}" class="btn btn-primary">엑셀 다운로드</a>
 <a href="{{ url_for('tenant_dashboard', tenant=tenant) }}" class="btn btn-outline">대시보드</a>
 <a href="{{ url_for('logout') }}" class="btn btn-outline">로그아웃</a>
 {% endblock %}
 
+{% block extra_style %}
+  .layout { display: grid; grid-template-columns: 220px 1fr; gap: 16px; align-items: start; margin-top: 16px; }
+  .tree-group { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; padding: 12px 6px; margin-bottom: 12px; }
+  .tree-head { padding: 4px 12px 8px; font-size: 10.5px; letter-spacing: 0.06em; color: var(--muted); text-transform: uppercase; font-weight: 700; }
+
+  .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+
+  .search-box { position: relative; max-width: 320px; margin-bottom: 14px; }
+  .search-box input { width: 100%; height: 38px; padding: 0 14px; border-radius: 9999px; border: 1px solid var(--card-border); background: var(--card-bg); color: var(--fg); font-size: 13px; }
+  .search-box input::placeholder { color: var(--muted); }
+
+  .app-card { margin-bottom: 12px; }
+  .app-card-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; flex-wrap: wrap; gap: 10px; }
+  .who { display: flex; align-items: center; gap: 12px; }
+  .name { font-size: 14.5px; font-weight: 700; }
+  .meta { font-size: 12px; color: var(--muted); margin-top: 3px; display: flex; gap: 10px; flex-wrap: wrap; }
+  .app-badges { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .pay-num { font-size: 12.5px; color: var(--muted); }
+  .pay-num b { color: var(--fg); font-weight: 700; }
+
+  .choice-row { display: flex; align-items: center; gap: 16px; padding: 12px 20px; border-top: 1px solid var(--card-border); }
+  .choice-num { font-weight: 700; font-size: 13px; color: var(--primary-fg); background: var(--primary-bg); width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .choice-row:nth-child(n+3) .choice-num { background: rgba(255,255,255,0.1); color: var(--fg); }
+  .choice-main { flex: 1; min-width: 0; }
+  .choice-org { font-size: 13px; font-weight: 700; }
+  .choice-region { font-size: 11.5px; color: var(--muted); margin-top: 1px; }
+  .choice-when { text-align: right; font-size: 11px; color: var(--muted); flex-shrink: 0; }
+  .choice-when .days { font-weight: 700; color: var(--fg); }
+  .empty-msg { padding: 14px 20px; color: var(--muted); font-size: 12.5px; }
+{% endblock %}
+
 {% block content %}
 <h1 class="gradient-text">강사지원 현황</h1>
-<p style="color: var(--muted);">총 {{ rows|length }}명 · 개인정보는 미팅 화면 노출을 대비해 마스킹 처리됩니다.</p>
+<p style="color: var(--muted);">개인정보는 마스킹 처리됩니다.</p>
 
-<div class="card" style="overflow-x: auto;">
-<table>
-  <thead>
-    <tr><th>이름</th><th>연락처</th><th>구분</th><th>1지망 지역</th><th>지망 내역</th><th></th></tr>
-  </thead>
-  <tbody>
-    {% for row in rows %}
-    <tr>
-      <td>{{ row.name }}</td>
-      <td>{{ row.tel }}</td>
-      <td>{{ row.role }}</td>
-      <td>{{ row.primary_region }}</td>
-      <td>
-        {% for ch in row.choices %}
-          <span class="badge badge-outline">{{ ch.rank }}지망 {{ ch.region }}/{{ ch.org }}</span>
-        {% endfor %}
-      </td>
-      <td>
-        <form method="post" action="{{ url_for('instructor_admin_delete', tenant=tenant, row_id=row.id) }}">
-          <button type="submit" class="btn btn-sm btn-danger">삭제</button>
-        </form>
-      </td>
-    </tr>
-    {% else %}
-    <tr><td colspan="6" style="color: var(--muted);">지원 내역이 없습니다.</td></tr>
-    {% endfor %}
-  </tbody>
-</table>
+<div class="kpi-row">
+  <div class="kpi-card">
+    <div class="klabel">총 지원자</div>
+    <div class="kvalue"><span class="num">{{ rows|length }}</span><span class="unit">명</span></div>
+  </div>
+  <div class="kpi-card">
+    <div class="klabel">지원내역 제출</div>
+    <div class="kvalue"><span class="num">{{ rows|selectattr('choices')|list|length }}</span><span class="unit">명</span></div>
+  </div>
+  <div class="kpi-card">
+    <div class="klabel">미제출</div>
+    <div class="kvalue"><span class="num">{{ rows|rejectattr('choices')|list|length }}</span><span class="unit">명</span></div>
+  </div>
+  <div class="kpi-card">
+    <div class="klabel">전체 지망 건수</div>
+    <div class="kvalue"><span class="num">{{ rows|map(attribute='choices')|map('length')|sum }}</span><span class="unit">건</span></div>
+  </div>
 </div>
+
+<div class="layout">
+  <div class="sidebar">
+    <div class="tree-group">
+      <div class="tree-head">권역 (1지망 기준)</div>
+      <div class="tree-item active" data-filter-type="region" data-filter-value="">전체</div>
+      {% for region, cnt in region_counts %}
+      <div class="tree-item" data-filter-type="region" data-filter-value="{{ region }}">{{ region }} <span class="count">{{ cnt }}</span></div>
+      {% endfor %}
+    </div>
+    <div class="tree-group">
+      <div class="tree-head">역할</div>
+      <div class="tree-item active" data-filter-type="role" data-filter-value="">전체</div>
+      {% for role, cnt in role_counts %}
+      <div class="tree-item" data-filter-type="role" data-filter-value="{{ role }}">{{ role }} <span class="count">{{ cnt }}</span></div>
+      {% endfor %}
+    </div>
+    <div class="tree-group">
+      <div class="tree-head">보험구분</div>
+      <div class="tree-item active" data-filter-type="ins" data-filter-value="">전체</div>
+      <div class="tree-item" data-filter-type="ins" data-filter-value="4대보험">4대보험 <span class="count">{{ insurance_counts['4대보험'] }}</span></div>
+      <div class="tree-item" data-filter-type="ins" data-filter-value="2대보험">2대보험 <span class="count">{{ insurance_counts['2대보험'] }}</span></div>
+      <div class="tree-item" data-filter-type="ins" data-filter-value="미매칭">미매칭 <span class="count">{{ insurance_counts['미매칭'] }}</span></div>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="이름, 지역, 센터명으로 검색" onkeyup="applyFilters()">
+    </div>
+
+    <div id="cardWrap">
+      {% for r in rows %}
+      <div class="card app-card searchable" data-region="{{ r.primary_region }}" data-role="{{ r.role }}" data-ins="{{ r.pay.insurance_type if r.pay else '미매칭' }}">
+        <div class="app-card-header">
+          <div class="who">
+            <div class="avatar">{{ r.name[0] }}</div>
+            <div>
+              <div class="name">{{ r.name }}</div>
+              <div class="meta"><span>{{ r.tel }}</span><span>제출 {{ r.submitted_at }}</span>{% if r.role %}<span>{{ r.role }}</span>{% endif %}</div>
+            </div>
+          </div>
+          <div class="app-badges">
+            {% if r.pay %}
+              <span class="badge {{ 'badge-accent' if r.pay.insurance_type == '4대보험' else 'badge-muted' }}">{{ r.pay.insurance_type }}</span>
+              <span class="pay-num">최근 합계 <b>{{ '{:,}'.format(r.pay.total) }}원</b></span>
+            {% else %}
+              <span class="badge badge-muted">미매칭</span>
+            {% endif %}
+            <form method="post" action="{{ url_for('instructor_admin_delete', tenant=tenant, row_id=r.id) }}" onsubmit="return confirm('삭제하시겠습니까?')">
+              <button type="submit" class="btn btn-sm btn-danger">삭제</button>
+            </form>
+          </div>
+        </div>
+        {% if r.choices %}
+        {% for ch in r.choices %}
+        <div class="choice-row">
+          <div class="choice-num">{{ ch.rank }}</div>
+          <div class="choice-main">
+            <div class="choice-org">{{ ch.org }}</div>
+            <div class="choice-region">{{ ch.region }}</div>
+          </div>
+          <div class="choice-when">
+            <div class="days">{{ ch.days | join(', ') }}</div>
+            <div>{{ ch.times | join(', ') }}</div>
+          </div>
+        </div>
+        {% endfor %}
+        {% else %}
+        <p class="empty-msg">지원 내역 없음</p>
+        {% endif %}
+      </div>
+      {% else %}
+      <p class="empty-msg">지원 내역이 없습니다.</p>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<script>
+  const activeFilter = { region: '', role: '', ins: '' };
+  document.querySelectorAll('.tree-item').forEach(item => {
+    item.addEventListener('click', () => {
+      const type = item.dataset.filterType;
+      const value = item.dataset.filterValue;
+      document.querySelectorAll(`.tree-item[data-filter-type="${type}"]`).forEach(el => el.classList.remove('active'));
+      item.classList.add('active');
+      activeFilter[type] = value;
+      applyFilters();
+    });
+  });
+  function applyFilters() {
+    const text = document.getElementById('searchInput').value.toLowerCase();
+    document.querySelectorAll('.card.searchable').forEach(card => {
+      const matchText = !text || card.textContent.toLowerCase().includes(text);
+      const matchRegion = !activeFilter.region || card.dataset.region === activeFilter.region;
+      const matchRole = !activeFilter.role || card.dataset.role === activeFilter.role;
+      const matchIns = !activeFilter.ins || card.dataset.ins === activeFilter.ins;
+      card.style.display = (matchText && matchRegion && matchRole && matchIns) ? '' : 'none';
+    });
+  }
+</script>
 {% endblock %}

@@ -226,13 +226,28 @@ def instructor_admin(tenant):
     rows = conn.execute('SELECT * FROM instructor_applications ORDER BY id DESC').fetchall()
     conn.close()
 
+    pf = paycheck_folder(tenant)
+    payroll_rows, _, _ = pay.build_payroll_summary(pf, pay.get_available_months(pf))
+    payroll_by_name = {r['name']: r for r in payroll_rows}
+
     parsed_rows = []
+    region_counts = {}
+    role_counts = {}
+    insurance_counts = {'4대보험': 0, '2대보험': 0, '미매칭': 0}
+
     for row in rows:
         choices = json.loads(row['choices']) if row['choices'] else []
         first_choice = next((c for c in choices if str(c.get('rank', '')) == '1'), None)
         primary_region = first_choice.get('region', '') if first_choice else (
             choices[0].get('region', '') if choices else ''
         )
+        p = payroll_by_name.get(row['name'])
+        p_masked = None
+        if p:
+            p_masked = dict(p)
+            ins_type = p['insurance_type']
+            p_masked['insurance_type'] = '4대보험' if ins_type == '4대보험' else '2대보험'
+
         parsed_rows.append({
             'id': row['id'],
             'submitted_at': row['submitted_at'],
@@ -241,9 +256,22 @@ def instructor_admin(tenant):
             'role': row['role'],
             'choices': choices,
             'primary_region': primary_region,
+            'pay': p_masked,
         })
 
-    return render_template('instructor_admin.html', tenant=tenant, rows=parsed_rows)
+        if primary_region:
+            region_counts[primary_region] = region_counts.get(primary_region, 0) + 1
+        if row['role']:
+            role_counts[row['role']] = role_counts.get(row['role'], 0) + 1
+        if p_masked:
+            insurance_counts[p_masked['insurance_type']] = insurance_counts.get(p_masked['insurance_type'], 0) + 1
+        else:
+            insurance_counts['미매칭'] += 1
+
+    return render_template('instructor_admin.html', tenant=tenant, rows=parsed_rows,
+                            region_counts=sorted(region_counts.items(), key=lambda x: -x[1]),
+                            role_counts=sorted(role_counts.items(), key=lambda x: -x[1]),
+                            insurance_counts=insurance_counts)
 
 
 @app.route('/<tenant>/instructor-admin/download')
@@ -424,6 +452,7 @@ def paycheck_admin(tenant):
 
     pf = paycheck_folder(tenant)
     available_months = pay.get_available_months(pf)
+    instructor_count = len(pay.load_instructor_list(pf))
 
     conn = get_db(tenant)
     consents = conn.execute('SELECT * FROM paycheck_consents ORDER BY id DESC').fetchall()
@@ -442,6 +471,7 @@ def paycheck_admin(tenant):
 
     return render_template('paycheck_admin.html', tenant=tenant,
                             available_months=available_months, consents=masked_consents,
+                            instructor_count=instructor_count,
                             payroll_rows=payroll_rows, payroll_totals=payroll_totals,
                             payroll_months=payroll_months)
 
