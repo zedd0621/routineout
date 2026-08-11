@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}상담 신청 확인 - routineout{% endblock %}
+{% block nav %}{% endblock %}
+
+{% block extra_style %}
+  .login-wrap { display: flex; justify-content: center; padding-top: 80px; }
+  .login-card { width: 100%; max-width: 360px; padding: 32px; }
+  .login-card h1 { font-size: 18px; margin-bottom: 24px; text-align: center; }
+  .login-card .field { margin-bottom: 16px; }
+  .login-card .btn { width: 100%; margin-top: 8px; }
+  .login-error { color: var(--danger); font-size: 13px; margin-bottom: 16px; text-align: center; }
+{% endblock %}
+
+{% block content %}
+<div class="login-wrap">
+  <form class="card login-card" method="post" action="{{ url_for('leads') }}">
+    <h1 class="gradient-text">상담 신청 확인</h1>
+    {% if error %}<p class="login-error">{{ error }}</p>{% endif %}
+    <div class="field">
+      <label for="password">비밀번호</label>
+      <input type="password" id="password" name="password" required>
+    </div>
+    <button type="submit" class="btn btn-primary">확인</button>
+  </form>
+</div>
+{% endblock %}

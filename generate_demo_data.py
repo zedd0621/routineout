@@ -66,7 +66,7 @@ def _gen_fake_centers():
     for region in rec.REGIONS:
         types = rng.sample(ORG_TYPES, k=5)
         for prefix, otype in zip(ORG_PREFIXES, types):
-            org = f'가짜{region}{prefix}{otype}'
+            org = f'(demodata){region}{prefix}{otype}'
             days = ','.join(sorted(rng.sample(rec.ALL_DAYS, k=rng.randint(2, 4)),
                                     key=rec.ALL_DAYS.index))
             times = ','.join(sorted(rng.sample(rec.ALL_TIMES, k=rng.randint(1, 3)),
@@ -77,7 +77,7 @@ def _gen_fake_centers():
             centers.append({
                 'region': region,
                 'org': org,
-                'addr': f'경기도 {region}시 가짜로 {rng.randint(1, 200)}',
+                'addr': f'경기도 {region}시 예시로 {rng.randint(1, 200)}',
                 'manager': rng.choice(SURNAMES) + '담당',
                 'tel': f'031-{rng.randint(200,999)}-{rng.randint(1000,9999)}',
                 'day': days,
@@ -117,7 +117,7 @@ def make_worklog(target_month, out_path):
     ws = wb.active
     ws.title = '실급여정산(근무일정 및 출퇴근기록 기반)'
 
-    ws.cell(row=1, column=1, value='routineout 데모(가짜데이터)')
+    ws.cell(row=1, column=1, value='(demodata) routineout 데모')
     ws.cell(row=1, column=3, value='야간근로 시작시간')
     ws.cell(row=1, column=4, value='22:00')
     ws.cell(row=2, column=3, value='야간근로 종료시간')
@@ -274,7 +274,7 @@ def seed_db():
             center['room_count'], center['room_info'], center['device'], center['target'],
             center['headcount'], center['course'],
             '자체모집', '현수막', center['period'], center['day'], center['time'],
-            'N', '', '', '데모용 가짜 데이터'
+            'N', '', '', '(demodata)'
         ))
 
     app_rng = random.Random(11)  # 지원 내역(요일·교시 부분지원)도 별도 시드로 고정

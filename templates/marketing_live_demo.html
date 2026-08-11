@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}라이브데모 체험하기 - routineout{% endblock %}
+
+{% block extra_style %}
+  .intro { max-width: 640px; margin: 0 auto 30px; text-align: center; }
+  .intro h1 { font-size: 26px; font-weight: 800; margin-bottom: 10px; }
+  .intro p { color: var(--muted); font-size: 13.5px; line-height: 1.7; }
+  .video-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; max-width: 900px; margin: 0 auto; }
+  @media(max-width: 700px) { .video-grid { grid-template-columns: 1fr; } }
+  .video-card { padding: 22px; }
+  .video-card .tag { font-size: 10.5px; font-weight: 700; padding: 3px 9px; }
+  .video-card h3 { font-size: 15px; font-weight: 800; margin: 10px 0 6px; }
+  .video-card p { font-size: 12.5px; color: var(--muted); line-height: 1.6; }
+  .video-card.soon { opacity: 0.5; }
+{% endblock %}
+
+{% block content %}
+<div class="intro">
+  <h1 class="gradient-text">라이브데모 체험하기</h1>
+  <p>실제로 운영했던 시스템을 그대로 재현한 데모(aiedu)를 화면으로 직접 보여드립니다. 로그인 없이도 흐름을 확인할 수 있도록, 사례별로 짧은 영상으로 준비하고 있습니다.</p>
+</div>
+
+<div class="video-grid">
+  <div class="card video-card">
+    <span class="badge badge-accent">준비 중</span>
+    <h3>01. 교육장-강사 자동매칭 시스템</h3>
+    <p>센터가 조건을 입력하면 강사 지원 페이지에 실시간 연동, 배치 추천까지 자동화한 흐름을 보여드립니다.</p>
+  </div>
+  <div class="card video-card soon">
+    <span class="badge badge-outline">준비 중</span>
+    <h3>02. 강사료 자동계산 시스템</h3>
+    <p>복합 급여 규칙과 4대/2대 보험 판정을 자동 계산하는 화면을 보여드립니다.</p>
+  </div>
+  <div class="card video-card soon">
+    <span class="badge badge-outline">준비 중</span>
+    <h3>03. 급여명세서 · 재직증명서 자동발급</h3>
+    <p>요청 시점에 즉시 계산해 발급하는 흐름을 보여드립니다.</p>
+  </div>
+  <div class="card video-card soon">
+    <span class="badge badge-outline">준비 중</span>
+    <h3>04. 강사 배치 추천 시스템</h3>
+    <p>정량 점수로 자동 정렬된 추천 결과 화면을 보여드립니다.</p>
+  </div>
+</div>
+
+<div style="text-align:center; margin-top:36px;">
+  <p style="color:var(--muted); font-size:13px; margin-bottom:14px;">영상이 준비되기 전이라도, 실제 화면을 직접 보고 싶으시면 상담 신청 시 라이브로 보여드립니다.</p>
+  <a href="{{ url_for('marketing_apply') }}" class="btn btn-primary" style="height:42px; padding:0 24px;">routineout 신청하기</a>
+</div>
+{% endblock %}
+
+{% block footer %}
+<div class="site-footer">
+  <div class="inner">
+    <div class="biz-info">
+      <b>routineout</b> · 대표 강성완 · 사업자등록번호 525-14-02765<br>
+      이메일 ksw2219@naver.com · 010-5552-3874
+    </div>
+    <div class="biz-info">© 2026 routineout. All rights reserved.</div>
+  </div>
+</div>
+{% endblock %}

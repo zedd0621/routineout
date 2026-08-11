@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}가격안내 - routineout{% endblock %}
+
+{% block extra_style %}
+  .intro { max-width: 640px; margin: 60px auto; text-align: center; }
+  .intro h1 { font-size: 26px; font-weight: 800; margin-bottom: 14px; }
+  .intro p { color: var(--muted); font-size: 13.5px; line-height: 1.8; }
+{% endblock %}
+
+{% block content %}
+<div class="intro">
+  <h1 class="gradient-text">가격안내</h1>
+  <p>준비 중입니다.<br>귀사의 상황에 맞는 견적은 상담을 통해 안내드립니다.</p>
+  <a href="{{ url_for('marketing_apply') }}" class="btn btn-primary" style="height:42px; padding:0 24px; margin-top:20px; display:inline-flex;">routineout 신청하기</a>
+</div>
+{% endblock %}
+
+{% block footer %}
+<div class="site-footer">
+  <div class="inner">
+    <div class="biz-info">
+      <b>routineout</b> · 대표 강성완 · 사업자등록번호 525-14-02765<br>
+      이메일 ksw2219@naver.com · 010-5552-3874
+    </div>
+    <div class="biz-info">© 2026 routineout. All rights reserved.</div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}상담 신청 목록 - routineout{% endblock %}
+{% block nav %}
+<a href="{{ url_for('leads_download') }}" class="btn btn-primary">CSV 다운로드</a>
+<a href="{{ url_for('leads_logout') }}" class="btn btn-outline">로그아웃</a>
+{% endblock %}
+
+{% block content %}
+<h1 class="gradient-text">상담 신청 목록</h1>
+<p style="color: var(--muted);">총 {{ rows|length }}건</p>
+
+<div class="card" style="overflow-x: auto; margin-top: 16px;">
+<table>
+  <thead><tr><th>신청일시</th><th>이름</th><th>연락처</th><th>문의내용</th></tr></thead>
+  <tbody>
+    {% for r in rows %}
+    <tr>
+      <td>{{ r.submitted_at }}</td>
+      <td>{{ r.name }}</td>
+      <td>{{ r.phone }}</td>
+      <td>{{ r.message }}</td>
+    </tr>
+    {% else %}
+    <tr><td colspan="4" style="color: var(--muted);">신청 내역이 없습니다.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}

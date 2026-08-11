@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}routineout 신청하기{% endblock %}
+
+{% block extra_style %}
+  .form-wrap { max-width: 480px; margin: 40px auto; }
+  .form-wrap h1 { font-size: 24px; font-weight: 800; margin-bottom: 10px; text-align: center; }
+  .form-wrap .notice { color: var(--muted); font-size: 13px; text-align: center; margin-bottom: 24px; line-height: 1.7; }
+  .form-card { padding: 28px; }
+  .form-card .field { margin-bottom: 16px; }
+  .form-card textarea { width: 100%; border: 1px solid var(--card-border); border-radius: var(--radius-field); padding: 10px 14px; font-size: 14px; color: var(--fg); background: rgba(255,255,255,0.04); font-family: inherit; resize: vertical; min-height: 100px; }
+  .form-card .btn { width: 100%; }
+{% endblock %}
+
+{% block content %}
+<div class="form-wrap">
+  <h1 class="gradient-text">routineout 신청하기</h1>
+  <p class="notice">
+    별도의 회원가입은 받지 않습니다. 구체적인 가격 협의, 보안을 위한 계정 발급, 계약서 작성이 필요한 절차라
+    아래 정보를 남겨주시면 담당자가 직접 연락드립니다.
+  </p>
+
+  <form class="card form-card" method="post">
+    <div class="field"><label>이름 <span class="req">*</span></label><input type="text" name="name" required></div>
+    <div class="field"><label>연락처 <span class="req">*</span></label><input type="tel" name="phone" placeholder="010-1234-5678" required></div>
+    <div class="field">
+      <label>비즈니스 페인포인트 또는 희망하시는 자동화 내용</label>
+      <textarea name="message" placeholder="예: 매달 강사료 정산을 엑셀로 수기 계산하고 있는데 자동화하고 싶습니다."></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">신청하기</button>
+  </form>
+</div>
+{% endblock %}
+
+{% block footer %}
+<div class="site-footer">
+  <div class="inner">
+    <div class="biz-info">
+      <b>routineout</b> · 대표 강성완 · 사업자등록번호 525-14-02765<br>
+      이메일 ksw2219@naver.com · 010-5552-3874
+    </div>
+    <div class="biz-info">© 2026 routineout. All rights reserved.</div>
+  </div>
+</div>
+{% endblock %}

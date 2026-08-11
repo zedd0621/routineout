@@ -7,23 +7,36 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='theme.css') }}">
 <style>
   .site-nav { display: flex; justify-content: space-between; align-items: center; padding: 18px 28px; }
-  .site-nav .brand { display: flex; align-items: center; gap: 10px; font-size: 17px; font-weight: 700; }
-  .site-nav .brand .logo-box { background: var(--primary-bg); color: var(--primary-fg); font-size: 13px; font-weight: 800; padding: 4px 10px; border-radius: 8px; }
-  .site-nav .nav-links { display: flex; gap: 8px; }
+  .site-nav .brand { display: flex; align-items: center; gap: 10px; font-size: 16px; font-weight: 700; letter-spacing: -0.01em; text-decoration: none; color: var(--fg); }
+  .site-nav .brand svg { display: block; flex-shrink: 0; }
+  .site-nav .nav-links { display: flex; align-items: center; gap: 8px; }
   .page-wrap { max-width: 1080px; margin: 0 auto; padding: 8px 20px 60px; }
+  .site-footer { border-top: 1px solid var(--card-border); margin-top: 40px; }
+  .site-footer .inner { max-width: 1080px; margin: 0 auto; padding: 18px 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+  .site-footer .biz-info { font-size: 11px; color: var(--muted); line-height: 1.7; }
+  .site-footer .biz-info b { color: #a8a8ac; font-weight: 600; }
   {% block extra_style %}{% endblock %}
 </style>
 </head>
 <body>
 
 <div class="site-nav">
-  <div class="brand">
-    <span class="logo-box">{{ brand_short|default('RO') }}</span>
-    <span>{{ site_name|default('routineout') }}</span>
-  </div>
+  <a href="{{ url_for('marketing_home') }}" class="brand">
+    <svg width="26" height="26" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="16" cy="16" r="11" stroke="var(--fg)" stroke-width="2.6"
+              stroke-dasharray="58 11" transform="rotate(-45 16 16)" />
+      <path d="M23.3 10.9 L28.2 7.4 M28.2 7.4 L24.3 7.1 M28.2 7.4 L27.6 11.3"
+            stroke="var(--fg)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    </svg>
+    <span>routineout</span>
+  </a>
   <div class="nav-links">
     {% block nav %}
-    <a href="#" class="btn btn-outline">홈</a>
+    <a href="{{ url_for('marketing_home') }}" class="btn btn-outline">회사소개</a>
+    <a href="{{ url_for('marketing_live_demo') }}" class="btn btn-outline">라이브데모 체험하기</a>
+    <a href="{{ url_for('marketing_pricing') }}" class="btn btn-outline">가격안내</a>
+    <a href="{{ url_for('marketing_apply') }}" class="btn btn-outline">routineout 신청하기</a>
+    <a href="{{ url_for('login') }}" class="btn btn-primary">로그인</a>
     {% endblock %}
   </div>
 </div>
@@ -33,6 +46,8 @@
   <!-- 이 블록 안에 각 페이지 고정 내용이 들어간다 -->
   {% endblock %}
 </div>
+
+{% block footer %}{% endblock %}
 
 {% block extra_script %}{% endblock %}
 </body>

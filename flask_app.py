@@ -7,17 +7,19 @@ from urllib.parse import quote
 from flask import Flask, abort, render_template, request, redirect, session, url_for, Response
 from werkzeug.security import check_password_hash
 
-from local_config import SECRET_KEY, TENANTS
+from local_config import SECRET_KEY, TENANTS, OWNER_PASSWORD_HASH
 from tenant_db import get_db, init_db, paycheck_folder
 from masking import mask_name, mask_birth, mask_phone
 import payroll_engine as pay
 import recommendation_engine as rec
+import leads_db
 
 app = Flask(__name__)
 app.secret_key = SECRET_KEY
 
 for _slug in TENANTS:
     init_db(_slug)
+leads_db.init_db()
 
 
 def require_tenant(tenant):
@@ -30,8 +32,74 @@ def require_tenant(tenant):
 
 
 @app.route('/')
-def index():
-    return render_template('index.html')
+def marketing_home():
+    return render_template('marketing_home.html')
+
+
+@app.route('/live-demo')
+def marketing_live_demo():
+    return render_template('marketing_live_demo.html')
+
+
+@app.route('/pricing')
+def marketing_pricing():
+    return render_template('marketing_pricing.html')
+
+
+@app.route('/apply', methods=['GET', 'POST'])
+def marketing_apply():
+    if request.method == 'POST':
+        conn = leads_db.get_db()
+        conn.execute(
+            'INSERT INTO leads (submitted_at, name, phone, message) VALUES (?, ?, ?, ?)',
+            (datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+             request.form.get('name', ''), request.form.get('phone', ''), request.form.get('message', ''))
+        )
+        conn.commit()
+        conn.close()
+        return render_template('marketing_apply_done.html')
+    return render_template('marketing_apply.html')
+
+
+@app.route('/leads', methods=['GET', 'POST'])
+def leads():
+    if not session.get('owner_logged_in'):
+        if request.method == 'POST':
+            if check_password_hash(OWNER_PASSWORD_HASH, request.form.get('password', '')):
+                session['owner_logged_in'] = True
+                return redirect(url_for('leads'))
+            return render_template('leads_login.html', error='비밀번호가 일치하지 않습니다.')
+        return render_template('leads_login.html', error=None)
+
+    conn = leads_db.get_db()
+    rows = conn.execute('SELECT * FROM leads ORDER BY id DESC').fetchall()
+    conn.close()
+    return render_template('leads.html', rows=rows)
+
+
+@app.route('/leads/download')
+def leads_download():
+    if not session.get('owner_logged_in'):
+        return redirect(url_for('leads'))
+    conn = leads_db.get_db()
+    rows = conn.execute('SELECT * FROM leads ORDER BY id DESC').fetchall()
+    conn.close()
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(['id', '신청일시', '이름', '연락처', '문의내용'])
+    for r in rows:
+        writer.writerow([r['id'], r['submitted_at'], r['name'], r['phone'], r['message']])
+    return Response(
+        output.getvalue().encode('utf-8-sig'),
+        mimetype='text/csv',
+        headers={'Content-Disposition': 'attachment; filename=routineout_leads.csv'}
+    )
+
+
+@app.route('/leads/logout')
+def leads_logout():
+    session.pop('owner_logged_in', None)
+    return redirect(url_for('leads'))
 
 
 @app.route('/login', methods=['GET', 'POST'])
