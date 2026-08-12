@@ -1,22 +1,26 @@
 {% extends "base.html" %}
 
-{% block title %}관리자 로그인 - routineout{% endblock %}
+{% block title %}관리자 로그인 - Routineout{% endblock %}
 
 {% block nav %}{% endblock %}
 
 {% block extra_style %}
-  .login-wrap { display: flex; justify-content: center; padding-top: 80px; }
-  .login-card { width: 100%; max-width: 360px; padding: 32px; }
-  .login-card h1 { font-size: 20px; margin-bottom: 24px; text-align: center; }
-  .login-card .field { margin-bottom: 16px; }
-  .login-card .btn { width: 100%; margin-top: 8px; }
-  .login-error { color: var(--danger); font-size: 13px; margin-bottom: 16px; text-align: center; }
+  .login-wrap {
+    display: flex; justify-content: center; align-items: flex-start; padding-top: 110px; min-height: 70vh;
+    background: radial-gradient(ellipse 460px 300px at 50% 0%, rgba(201,138,75,.10), transparent 60%);
+  }
+  .login-card { width: 100%; max-width: 380px; padding: 40px 36px; }
+  .login-card h1 { font-size: 24px; margin-bottom: 28px; text-align: center; }
+  .login-card .field { margin-bottom: 18px; }
+  .login-card .field label { font-family: -apple-system, 'Malgun Gothic', sans-serif; }
+  .login-card .btn { width: 100%; margin-top: 10px; height: 42px; }
+  .login-error { color: var(--danger); font-size: 13px; margin-bottom: 16px; text-align: center; font-family: -apple-system, 'Malgun Gothic', sans-serif; }
 {% endblock %}
 
 {% block content %}
 <div class="login-wrap">
   <form class="card login-card" method="post" action="{{ url_for('login') }}">
-    <h1 class="gradient-text">관리자 로그인</h1>
+    <h1 class="editorial-h1">관리자 로그인</h1>
     {% if error %}
     <p class="login-error">{{ error }}</p>
     {% endif %}
