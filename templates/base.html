@@ -6,10 +6,29 @@
 <title>{% block title %}{{ site_name|default('routineout') }}{% endblock %}</title>
 <link rel="stylesheet" href="{{ url_for('static', filename='theme.css') }}">
 <style>
-  .site-nav { display: flex; justify-content: space-between; align-items: center; padding: 18px 28px; }
-  .site-nav .brand { display: flex; align-items: center; gap: 10px; font-size: 16px; font-weight: 700; letter-spacing: -0.01em; text-decoration: none; color: var(--fg); }
+  .site-nav { position: relative; display: flex; justify-content: space-between; align-items: center; padding: 18px 28px; }
+  .site-nav .brand { display: flex; align-items: center; gap: 10px; font-size: 16px; font-weight: 700; letter-spacing: -0.01em; text-decoration: none; color: var(--fg); flex-shrink: 0; }
   .site-nav .brand svg { display: block; flex-shrink: 0; }
   .site-nav .nav-links { display: flex; align-items: center; gap: 8px; }
+  .site-nav .nav-links .btn { white-space: nowrap; }
+  .nav-toggle {
+    display: none; width: 36px; height: 36px; flex-shrink: 0; align-items: center; justify-content: center;
+    background: transparent; border: 1px solid var(--card-border); border-radius: 8px; cursor: pointer; padding: 0;
+  }
+  .nav-toggle .icon-close { display: none; }
+  .nav-toggle.active .icon-menu { display: none; }
+  .nav-toggle.active .icon-close { display: block; }
+  @media (max-width: 760px) {
+    .nav-toggle { display: flex; }
+    .site-nav .nav-links {
+      display: none; flex-direction: column; align-items: stretch; gap: 8px;
+      position: absolute; top: 100%; left: 0; right: 0; z-index: 999;
+      background: var(--bg); border-top: 1px solid var(--card-border); border-bottom: 1px solid var(--card-border);
+      padding: 14px 20px 20px;
+    }
+    .site-nav .nav-links.open { display: flex; }
+    .site-nav .nav-links .btn { width: 100%; }
+  }
   .page-wrap { max-width: 1080px; margin: 0 auto; padding: 8px 20px 60px; }
   .site-footer { border-top: 1px solid var(--card-border); margin-top: 40px; }
   .site-footer .inner { max-width: 1080px; margin: 0 auto; padding: 18px 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
@@ -30,7 +49,11 @@
     </svg>
     <span>routineout</span>
   </a>
-  <div class="nav-links">
+  <button type="button" class="nav-toggle" id="navToggle" aria-label="메뉴 열기" aria-expanded="false">
+    <svg class="icon-menu" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M2 8h12M2 12h12" stroke="var(--fg)" stroke-width="1.6" stroke-linecap="round"/></svg>
+    <svg class="icon-close" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 3l10 10M13 3L3 13" stroke="var(--fg)" stroke-width="1.6" stroke-linecap="round"/></svg>
+  </button>
+  <div class="nav-links" id="navLinks">
     {% block nav %}
     <a href="{{ url_for('marketing_home') }}" class="btn btn-outline">회사소개</a>
     <a href="{{ url_for('marketing_live_demo') }}" class="btn btn-outline">라이브데모 체험하기</a>
@@ -50,5 +73,25 @@
 {% block footer %}{% endblock %}
 
 {% block extra_script %}{% endblock %}
+
+<script>
+(function () {
+  var toggle = document.getElementById('navToggle');
+  var links = document.getElementById('navLinks');
+  if (!toggle || !links) return;
+  toggle.addEventListener('click', function () {
+    var isOpen = links.classList.toggle('open');
+    toggle.classList.toggle('active', isOpen);
+    toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+  });
+  links.querySelectorAll('a').forEach(function (a) {
+    a.addEventListener('click', function () {
+      links.classList.remove('open');
+      toggle.classList.remove('active');
+      toggle.setAttribute('aria-expanded', 'false');
+    });
+  });
+})();
+</script>
 </body>
 </html>
