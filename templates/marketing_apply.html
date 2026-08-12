@@ -1,35 +1,41 @@
 {% extends "base.html" %}
 
-{% block title %}routineout 신청하기{% endblock %}
+{% block title %}Routineout 신청하기{% endblock %}
 
 {% block extra_style %}
-  .form-wrap { max-width: 560px; margin: 40px auto; }
-  .form-wrap h1 { font-size: 24px; font-weight: 800; margin-bottom: 10px; text-align: center; }
-  .form-wrap .notice { color: var(--muted); font-size: 13px; text-align: center; margin-bottom: 24px; line-height: 1.7; }
-  .form-card { padding: 30px; }
+  .form-wrap { max-width: 960px; margin: 40px auto; }
+  .form-head { max-width: 640px; margin: 0 auto 34px; text-align: center; }
+  .form-head h1 { font-size: 30px; margin-bottom: 14px; }
+  @media (max-width: 600px) { .form-head h1 { font-size: 24px; } .form-card { padding: 28px 22px; } }
+  .form-head .notice { color: var(--muted); font-size: 13px; line-height: 1.7; font-family: -apple-system, 'Malgun Gothic', sans-serif; }
+  .form-card { padding: 40px 44px; }
 
-  .form-section { margin-bottom: 26px; }
+  .form-section { margin-bottom: 30px; }
   .form-section:last-of-type { margin-bottom: 0; }
-  .form-section .section-label { display: flex; align-items: center; gap: 8px; font-size: 11.5px; font-weight: 700; color: var(--muted); letter-spacing: 0.02em; margin-bottom: 14px; }
+  .form-section .section-label { display: flex; align-items: center; gap: 8px; font-size: 11.5px; font-weight: 700; color: var(--muted); letter-spacing: 0.02em; margin-bottom: 16px; }
   .form-section .section-label .bar { width: 16px; height: 2px; background: var(--card-border); display: inline-block; }
 
-  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-  @media (max-width: 600px) { .field-row { grid-template-columns: 1fr; } }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px; }
+  @media (max-width: 700px) { .field-row { grid-template-columns: 1fr; } }
 
-  .form-card .field { margin-bottom: 16px; }
+  .form-card .field { margin-bottom: 20px; }
   .form-card .field:last-child { margin-bottom: 0; }
-  .form-card .field-hint { color: var(--muted); font-size: 12px; margin-top: 5px; line-height: 1.5; }
-  .form-card textarea { width: 100%; border: 1px solid var(--card-border); border-radius: var(--radius-field); padding: 10px 14px; font-size: 14px; color: var(--fg); background: rgba(255,255,255,0.04); font-family: inherit; resize: vertical; min-height: 90px; }
-  .form-card .btn { width: 100%; margin-top: 6px; }
+  .form-card .field-hint { color: var(--muted); font-size: 12px; margin-top: 6px; line-height: 1.5; }
+  .form-card textarea { width: 100%; border: 1px solid var(--card-border); border-radius: var(--radius-field); padding: 12px 16px; font-size: 14px; color: var(--fg); background: rgba(255,255,255,0.04); font-family: inherit; resize: vertical; min-height: 110px; }
+  .form-card .btn { width: 100%; margin-top: 8px; height: 44px; font-size: 14px; }
+  .form-card .check-group { gap: 10px; }
+  .form-card .check-group label { padding: 8px 16px; font-size: 14px; }
 {% endblock %}
 
 {% block content %}
 <div class="form-wrap">
-  <h1 class="gradient-text">routineout 신청하기</h1>
-  <p class="notice">
-    별도의 회원가입은 받지 않습니다. 구체적인 가격 협의, 보안을 위한 계정 발급, 계약서 작성이 필요한 절차라
-    아래 정보를 남겨주시면 담당자가 직접 연락드립니다.
-  </p>
+  <div class="form-head">
+    <h1 class="editorial-h1">Routineout 신청하기</h1>
+    <p class="notice">
+      별도의 회원가입은 받지 않습니다. 구체적인 가격 협의, 보안을 위한 계정 발급, 계약서 작성이 필요한 절차라
+      아래 정보를 남겨주시면 담당자가 직접 연락드립니다.
+    </p>
+  </div>
 
   <form class="card form-card" method="post">
 
@@ -38,8 +44,8 @@
       <div class="field-row">
         <div class="field"><label>이름 <span class="req">*</span></label><input type="text" name="name" required></div>
         <div class="field"><label>연락처 <span class="req">*</span></label><input type="tel" name="phone" placeholder="010-1234-5678" required></div>
+        <div class="field"><label>이메일</label><input type="email" name="email" placeholder="선택 — 견적서 발송용"></div>
       </div>
-      <div class="field"><label>이메일</label><input type="email" name="email" placeholder="선택 — 견적서 발송용"></div>
     </div>
 
     <div class="form-section">
@@ -94,10 +100,10 @@
 <div class="site-footer">
   <div class="inner">
     <div class="biz-info">
-      <b>routineout</b> · 대표 강성완 · 사업자등록번호 525-14-02765<br>
+      <b>Routineout</b> · 대표 강성완 · 사업자등록번호 525-14-02765<br>
       이메일 ksw2219@naver.com · 010-5552-3874
     </div>
-    <div class="biz-info">© 2026 routineout. All rights reserved.</div>
+    <div class="biz-info">© 2026 Routineout. All rights reserved.</div>
   </div>
 </div>
 {% endblock %}

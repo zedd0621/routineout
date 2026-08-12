@@ -1,78 +1,83 @@
 {% extends "base.html" %}
 
-{% block title %}운영철학 - routineout{% endblock %}
+{% block title %}운영철학 - Routineout{% endblock %}
 
 {% block extra_style %}
-  .intro { max-width: 640px; margin: 60px auto 50px; text-align: center; }
-  .intro h1 { font-size: 24px; font-weight: 800; line-height: 1.5; }
+  .intro {
+    max-width: 800px; margin: 70px auto 60px; text-align: center; padding: 0 20px;
+    background: radial-gradient(ellipse 480px 300px at 78% 0%, rgba(201,138,75,.10), transparent 60%);
+  }
+  .intro h1 { font-size: 27px; line-height: 1.6; }
+  @media (max-width: 600px) { .intro h1 { font-size: 21px; } .story-block .label { font-size: 20px; } .service-section h2 { font-size: 24px; } }
 
-  .story { max-width: 640px; margin: 0 auto; display: flex; flex-direction: column; gap: 34px; }
-  .story-block .label { display: flex; align-items: center; gap: 8px; font-size: 11.5px; font-weight: 700; color: var(--muted); letter-spacing: 0.02em; margin-bottom: 10px; }
-  .story-block .label .bar { width: 16px; height: 2px; background: var(--card-border); display: inline-block; }
-  .story-block p { font-size: 14.5px; line-height: 1.85; color: #d8d8db; }
+  .story { max-width: 660px; margin: 0 auto; display: flex; flex-direction: column; gap: 44px; padding: 0 20px; }
+  .story-block .label {
+    font-family: Georgia, 'Nanum Myeongjo', serif; font-size: 24px; font-weight: 700;
+    color: var(--accent); letter-spacing: -0.005em; margin-bottom: 14px;
+  }
+  .story-block p { font-size: 14.5px; line-height: 1.9; color: #d8d8db; font-family: -apple-system, 'Malgun Gothic', sans-serif; }
   .story-block p + p { margin-top: 12px; }
 
   .quote-block {
-    border-left: 3px solid var(--fg); padding: 4px 0 4px 20px; margin: 6px 0;
-    font-size: 16px; font-weight: 700; line-height: 1.7; color: var(--fg);
+    border-left: 3px solid var(--accent); padding: 4px 0 4px 20px; margin: 14px 0;
+    font-family: Georgia, 'Nanum Myeongjo', serif; font-size: 18px; font-weight: 700; line-height: 1.7; color: var(--fg);
   }
 
-  .service-section { max-width: 960px; margin: 70px auto 0; }
-  .service-section .eyebrow { display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 700; letter-spacing: 0.02em; margin-bottom: 16px; justify-content: center; }
-  .service-section .eyebrow .bar { width: 20px; height: 2px; background: var(--fg); display: inline-block; }
-  .service-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .service-section { max-width: 980px; margin: 90px auto 0; padding: 0 20px; text-align: center; }
+  .service-section h2 { font-size: 30px; margin: 0 auto 34px; }
+  .service-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; text-align: left; }
   @media (max-width: 760px) { .service-grid { grid-template-columns: 1fr 1fr; } }
   @media (max-width: 480px) { .service-grid { grid-template-columns: 1fr; } }
-  .service-card { padding: 18px 20px; }
-  .service-card .num { font-size: 11px; color: var(--muted); font-weight: 800; }
-  .service-card h3 { font-size: 14px; font-weight: 800; margin: 6px 0 6px; }
-  .service-card p { font-size: 12.5px; color: var(--muted); line-height: 1.6; }
+  .service-card { padding: 20px 22px; font-family: -apple-system, 'Malgun Gothic', sans-serif; }
+  .service-card .num { font-size: 11px; color: var(--accent); font-weight: 800; letter-spacing: .04em; }
+  .service-card h3 { font-size: 14.5px; font-weight: 800; margin: 8px 0 8px; }
+  .service-card p { font-size: 12.5px; color: var(--muted); line-height: 1.65; }
 
-  .cta-row { text-align: center; margin: 50px 0 10px; }
+  .cta-row { text-align: center; margin: 56px 0 10px; }
 {% endblock %}
 
 {% block content %}
 <div class="intro">
-  <h1 class="gradient-text">routineout — 반복되는 업무 루틴으로부터 해방되어<br>당신이 진짜 업무에 집중할 수 있도록 돕겠습니다.</h1>
+  <h1 class="editorial-h1">Routineout — 반복되는 업무 루틴으로부터 해방되어<br>당신이 진짜 업무에 집중할 수 있도록 돕겠습니다.</h1>
 </div>
 
 <div class="story">
   <div class="story-block">
-    <div class="label"><span class="bar"></span>문외한 시절</div>
+    <div class="label">문외한 시절</div>
     <p>2025년 중순까지만 해도 저는 프로그래밍이나 코딩을 접해본 적 없는 문외한이었습니다. 당시 저는 개인적인 취미활동인 소설 집필에 AI를 활용하는 것이 전부였습니다. 주로 집필에 필요한 사회적 배경이나 대중의 인식 등을 조사하는 데 사용했죠.</p>
     <p>그 과정에서 AI의 특성과 한계에 대해 깨달은 바가 있었습니다. AI가 만든 결과물에도 분명 오류나 환각이 있었거든요. 특히 AI는 엄청난 도구이지만, 사용자가 어떤 프롬프트를 입력하는지에 따라 전혀 다른 결과를 만들어 낸다는 점을 깨달았습니다.</p>
   </div>
 
   <div class="story-block">
-    <div class="label"><span class="bar"></span>계기</div>
+    <div class="label">계기</div>
     <p>당시 근무 중이던 회사에서, 4~5백 명의 고객을 대상으로 개별 고객의 이메일 주소를 입력한 뒤 해당 고객이 받아야 할 문서를 일일이 첨부해 보내고 있는 직원의 모습에 충격을 받았습니다. 각 서류에 적힌 일련번호와 내용이 조금씩 달랐기에, 그 업무를 4~5백 번 반복해야 비로소 수료증 발송 업무가 끝났고, 사람이 직접 하는 일이다 보니 누락이나 휴먼에러가 발생하기도 했습니다.</p>
   </div>
 
   <div class="story-block">
-    <div class="label"><span class="bar"></span>발상의 전환</div>
+    <div class="label">발상의 전환</div>
     <p>그 모습을 보고 생각했습니다. "AI로 이미지나 영상도 만드는 시대에, 저렇게 구세대적인 방식으로 일하는 건 뭔가 잘못됐다."</p>
     <div class="quote-block">"논리적 모순이 없는 구조화된 언어로 문장을 만들 수 있다면, 그건 컴퓨터가 알아들을 수 있는 언어로도 그대로 옮길 수 있지 않을까?"</div>
     <p>이에 당시 상황을 해결할 아이디어를 구체화해 AI에게 설명했습니다. 불과 4시간가량 만에 웹페이지를 구축했고, 기존에 직원 1명이 매달려 1주일 걸리던 작업은 단 2시간으로 줄었습니다.</p>
   </div>
 
   <div class="story-block">
-    <div class="label"><span class="bar"></span>확장</div>
+    <div class="label">확장</div>
     <p>이후로도 AI를 활용해 다양한 업무를 자동화했습니다. 정부국책교육사업에서 수백~수천 통의 전화가 필요했던 교육센터-강사 매칭을 실시간 연동 웹페이지로 자동화하고, 강사료 자동계산·서류 자동발급 시스템도 직접 설계·구축했습니다.</p>
   </div>
 
   <div class="story-block">
-    <div class="label"><span class="bar"></span>routineout 창업</div>
+    <div class="label">Routineout 창업</div>
     <p>세상에는 수많은 산업이 있고, 각 산업 분야에서 문제에 직면한 수많은 사업자와 업무 담당자가 있습니다. 해결 방안을 찾지 못하는 경우도 있고, 혹은 방법은 알지만 상용화된 서비스의 가격이 너무 비싸서 포기하는 경우도 있습니다.</p>
   </div>
 
   <div class="story-block">
-    <div class="label"><span class="bar"></span>그래서 저는</div>
+    <div class="label">그래서 저는</div>
     <p>제 경험과 노하우를 바탕으로, 고객이 처한 문제의 해결 방안을 함께 찾는 일을 하기로 결심했습니다. AI 자동화를 통해 고객의 시간과 비용을 절약하도록 돕고자 합니다.</p>
   </div>
 </div>
 
 <div class="service-section">
-  <div class="eyebrow"><span class="bar"></span>그래서 routineout이 하는 일</div>
+  <h2 class="editorial-h1">Routineout이 제공하는 서비스</h2>
   <div class="service-grid">
     <div class="card service-card">
       <div class="num">01</div>
@@ -99,6 +104,11 @@
       <h3>커스텀 웹사이트/시스템 구축</h3>
       <p>신청폼 자동화, 관리자 대시보드 등 기능이 필요한 사이트</p>
     </div>
+    <div class="card service-card">
+      <div class="num">06</div>
+      <h3>그 외 커스터마이징 자동화</h3>
+      <p>위에 없는 반복 업무도 진단 후 맞춤 자동화 시스템으로 구축해드립니다</p>
+    </div>
   </div>
 </div>
 
@@ -112,10 +122,10 @@
 <div class="site-footer">
   <div class="inner">
     <div class="biz-info">
-      <b>routineout</b> · 대표 강성완 · 사업자등록번호 525-14-02765<br>
+      <b>Routineout</b> · 대표 강성완 · 사업자등록번호 525-14-02765<br>
       이메일 ksw2219@naver.com · 010-5552-3874
     </div>
-    <div class="biz-info">© 2026 routineout. All rights reserved.</div>
+    <div class="biz-info">© 2026 Routineout. All rights reserved.</div>
   </div>
 </div>
 {% endblock %}

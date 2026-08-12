@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>{% block title %}{{ site_name|default('routineout') }}{% endblock %}</title>
+<title>{% block title %}{{ site_name|default('Routineout') }}{% endblock %}</title>
 <link rel="stylesheet" href="{{ url_for('static', filename='theme.css') }}">
 <style>
   .site-nav { position: relative; display: flex; justify-content: space-between; align-items: center; padding: 18px 28px; }
@@ -47,7 +47,7 @@
       <path d="M23.3 10.9 L28.2 7.4 M28.2 7.4 L24.3 7.1 M28.2 7.4 L27.6 11.3"
             stroke="var(--fg)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
     </svg>
-    <span>routineout</span>
+    <span>Routineout</span>
   </a>
   <button type="button" class="nav-toggle" id="navToggle" aria-label="메뉴 열기" aria-expanded="false">
     <svg class="icon-menu" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M2 8h12M2 12h12" stroke="var(--fg)" stroke-width="1.6" stroke-linecap="round"/></svg>
@@ -58,7 +58,7 @@
     <a href="{{ url_for('marketing_philosophy') }}" class="btn btn-outline">운영철학</a>
     <a href="{{ url_for('marketing_live_demo') }}" class="btn btn-outline">라이브데모 체험하기</a>
     <a href="{{ url_for('marketing_pricing') }}" class="btn btn-outline">가격안내</a>
-    <a href="{{ url_for('marketing_apply') }}" class="btn btn-outline">routineout 신청하기</a>
+    <a href="{{ url_for('marketing_apply') }}" class="btn btn-outline">Routineout 신청하기</a>
     <a href="{{ url_for('login') }}" class="btn btn-primary">로그인</a>
     {% endblock %}
   </div>

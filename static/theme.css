@@ -4,17 +4,23 @@
    굵은 화이트 타이포, 화이트 필 버튼, 헤어라인 구분선. 컬러는 상태/카테고리
    표시(뱃지 dot)에만 최소한으로 쓰고 브랜드 액센트로는 안 쓴다.
    <link rel="stylesheet" href="{{ url_for('static', filename='theme.css') }}">
+
+   ※ 2026-08-12부터 마케팅 페이지(marketing_*.html)는 아래 "에디토리얼" 톤으로 전환.
+   레퍼런스: obsidianos.com — 순검정 유지, 세리프 헤드라인 + 중앙정렬 + 여백,
+   앰버 글로우 하나만 포인트로 사용. --accent/.editorial-h1이 그 확장분.
+   내부 테넌트 화면(대시보드/관리자 등)은 기존 Linear 톤 그대로 유지 — 손대지 않음.
    ============================================================ */
 
 :root {
   /* 색상 토큰 */
   --bg: #0a0a0a;                 /* 순검정, 그라디언트 없음 */
-  --fg: #f7f7f7;                 /* 기본 텍스트 */
-  --muted: #8a8a8f;              /* 보조/설명 텍스트 */
+  --fg: #f3f2ee;                 /* 기본 텍스트 (살짝 웜톤) */
+  --muted: #9a9a94;              /* 보조/설명 텍스트 */
   --card-bg: rgba(255,255,255,0.04);
   --card-border: rgba(255,255,255,0.09);
   --danger: #f28b8b;
   --danger-border: rgba(242,139,139,0.25);
+  --accent: #c98a4b;             /* 앰버 포인트 — 마케팅 페이지 전용, 헤드라인 강조 단어/eyebrow/glow에만 절제해서 사용 */
 
   /* 프라이머리 — 컬러 액센트 대신 화이트 필(고대비)을 유일한 강조 수단으로 사용 */
   --primary-bg: #ffffff;
@@ -38,6 +44,8 @@ body {
   color: var(--fg);
   background: var(--bg);
   min-height: 100vh;
+  word-break: keep-all;         /* 한글 단어(어절) 중간에서 줄바꿈되는 것 방지 — 띄어쓰기 지점에서만 줄바꿈 */
+  overflow-wrap: break-word;    /* 그래도 컨테이너보다 긴 단일 토큰(URL 등)은 넘치지 않게 강제 줄바꿈 */
 }
 
 /* — 헤드라인: 그라디언트 없이 굵은 화이트, 타이트한 자간·행간 — */
@@ -46,6 +54,22 @@ body {
   font-weight: 800;
   letter-spacing: -0.01em;
 }
+
+/* — 에디토리얼 헤드라인(마케팅 페이지 전용) — 세리프, 라이트웨이트, 여유로운 행간 —
+   한글은 시스템 세리프로 자연 폴백(고딕 아님), 라틴/숫자만 Georgia가 실제로 적용됨 */
+.editorial-h1 {
+  font-family: Georgia, 'Nanum Myeongjo', serif;
+  font-weight: 400;
+  letter-spacing: -0.005em;
+  color: var(--fg);
+}
+.editorial-h1 .accent { color: var(--accent); }
+.eyebrow-amber {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 11.5px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--accent); font-family: -apple-system, 'Malgun Gothic', sans-serif;
+}
+.eyebrow-amber::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
 
 /* — 카드: 헤어라인으로만 구분, 배경 거의 안 보임 — */
 .card {

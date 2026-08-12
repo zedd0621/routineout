@@ -1,61 +1,66 @@
 {% extends "base.html" %}
 
-{% block title %}routineout — 반복 업무를 시스템으로{% endblock %}
+{% block title %}Routineout — 반복 업무를 시스템으로{% endblock %}
 
 {% block extra_style %}
-  .hero { text-align: center; padding: 40px 0 30px; }
-  .hero-logo { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 16px; }
-  .hero-logo span { font-size: 24px; font-weight: 800; letter-spacing: -0.01em; }
-  .hero-tagline { color: var(--muted); font-size: 14px; margin-bottom: 30px; }
-  .hero h1 { font-size: 32px; font-weight: 800; line-height: 1.4; margin-bottom: 14px; text-wrap: balance; }
-  .hero .sub { color: var(--muted); font-size: 14px; max-width: 520px; margin: 0 auto; }
+  .hero {
+    text-align: center; padding: 76px 20px 40px;
+    background: radial-gradient(ellipse 520px 340px at 82% 6%, rgba(201,138,75,.12), transparent 62%);
+  }
+  .hero-logo { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 22px; }
+  .hero-logo span { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; font-family: -apple-system, 'Malgun Gothic', sans-serif; }
+  .hero .eyebrow-amber { margin-bottom: 22px; }
+  .hero h1 { font-size: 44px; line-height: 1.4; margin: 0 auto 20px; text-wrap: balance; max-width: 760px; }
+  .hero .sub { color: var(--muted); font-size: 14.5px; max-width: 460px; margin: 0 auto 40px; font-family: -apple-system, 'Malgun Gothic', sans-serif; }
+  @media (max-width: 600px) { .hero h1 { font-size: 28px; } .hero { padding: 56px 20px 30px; } }
 
-  .problem-list { max-width: 640px; margin: 32px auto; display: flex; flex-direction: column; gap: 0; }
-  .problem-item { display: flex; align-items: flex-start; gap: 14px; padding: 14px 4px; border-bottom: 1px solid var(--card-border); text-align: left; }
-  .problem-item .letter { width: 24px; height: 24px; border: 1px solid var(--card-border); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; margin-top: 1px; }
-  .problem-item .text { font-size: 14px; line-height: 1.55; }
+  .problem-list { max-width: 620px; margin: 0 auto 40px; display: flex; flex-direction: column; gap: 0; font-family: -apple-system, 'Malgun Gothic', sans-serif; }
+  .problem-item { display: flex; align-items: flex-start; gap: 14px; padding: 15px 4px; border-bottom: 1px solid var(--card-border); text-align: left; }
+  .problem-item .letter { width: 24px; height: 24px; border: 1px solid var(--card-border); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: var(--accent); flex-shrink: 0; margin-top: 1px; }
+  .problem-item .text { font-size: 14px; line-height: 1.6; color: #d6d6d1; }
 
   .cta-row { text-align: center; margin: 36px 0 10px; }
 
-  .section { max-width: 960px; margin: 70px auto 0; }
-  .section .eyebrow { display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 700; letter-spacing: 0.02em; margin-bottom: 12px; }
-  .section .eyebrow .bar { width: 20px; height: 2px; background: var(--fg); display: inline-block; }
-  .section h2 { font-size: 24px; font-weight: 800; margin-bottom: 10px; text-wrap: balance; }
-  .section .intro { color: var(--muted); font-size: 13.5px; margin-bottom: 24px; }
+  .section { max-width: 960px; margin: 96px auto 0; text-align: center; }
+  .section .eyebrow-amber { justify-content: center; margin-bottom: 16px; }
+  .section h2 { font-size: 30px; margin: 0 auto 14px; text-wrap: balance; max-width: 620px; }
+  @media (max-width: 600px) { .section h2 { font-size: 22px; } }
+  .section .intro { color: var(--muted); font-size: 13.5px; margin: 0 auto 34px; max-width: 520px; font-family: -apple-system, 'Malgun Gothic', sans-serif; }
 
-  .case-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .case-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; text-align: left; font-family: -apple-system, 'Malgun Gothic', sans-serif; }
   @media(max-width: 760px) { .case-grid { grid-template-columns: 1fr; } }
-  .case-card { padding: 20px 22px; }
-  .case-card .num { font-size: 11px; color: var(--muted); font-weight: 800; }
-  .case-card h3 { font-size: 15px; font-weight: 800; margin: 4px 0 12px; }
-  .case-card .before-after { font-size: 12.5px; line-height: 1.6; color: #cfcfd2; }
+  .case-card { padding: 22px 24px; }
+  .case-card .num { font-size: 11px; color: var(--accent); font-weight: 800; letter-spacing: .04em; }
+  .case-card h3 { font-size: 15px; font-weight: 800; margin: 8px 0 12px; }
+  .case-card .before-after { font-size: 12.5px; line-height: 1.7; color: #c9c9c4; }
   .case-card .before-after b { color: var(--fg); }
 
-  .checklist { max-width: 640px; margin: 20px auto 0; }
-  .check-item { display: flex; align-items: center; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--card-border); text-align: left; }
-  .check-item .mark { width: 20px; height: 20px; border-radius: 50%; background: var(--primary-bg); color: var(--primary-fg); display: flex; align-items: center; justify-content: center; font-size: 11px; flex-shrink: 0; }
-  .check-item .text { font-size: 13.5px; }
+  .checklist { max-width: 600px; margin: 0 auto; font-family: -apple-system, 'Malgun Gothic', sans-serif; }
+  .check-item { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--card-border); text-align: left; }
+  .check-item .mark { width: 20px; height: 20px; border-radius: 50%; background: var(--accent); color: #1a1206; display: flex; align-items: center; justify-content: center; font-size: 11px; flex-shrink: 0; }
+  .check-item .text { font-size: 13.5px; color: #d6d6d1; }
 
-  .closing-box { padding: 28px 32px; margin: 40px auto 0; max-width: 720px; text-align: center; background: rgba(255,255,255,0.04); }
-  .closing-box .line1 { font-size: 12.5px; color: var(--muted); margin-bottom: 10px; }
-  .closing-box .line2 { font-size: 19px; font-weight: 800; line-height: 1.55; }
+  .closing-box { padding: 40px 36px; margin: 56px auto 0; max-width: 640px; text-align: center; background: rgba(255,255,255,0.035); border: 1px solid var(--card-border); border-radius: var(--radius-card); }
+  .closing-box .line1 { font-size: 12.5px; color: var(--muted); margin-bottom: 16px; font-family: -apple-system, 'Malgun Gothic', sans-serif; }
+  .closing-box .line2 { font-size: 22px; line-height: 1.6; }
 {% endblock %}
 
 {% block content %}
 
 <div class="hero">
   <div class="hero-logo">
-    <svg width="40" height="40" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg width="36" height="36" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
       <circle cx="16" cy="16" r="11" stroke="var(--fg)" stroke-width="2.6"
               stroke-dasharray="58 11" transform="rotate(-45 16 16)" />
       <path d="M23.3 10.9 L28.2 7.4 M28.2 7.4 L24.3 7.1 M28.2 7.4 L27.6 11.3"
             stroke="var(--fg)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
     </svg>
-    <span>routineout</span>
+    <span>Routineout</span>
   </div>
-  <div class="hero-tagline">반복되는 운영 업무를 진단하고, 실제로 돌아가는 시스템으로 바꿉니다.</div>
+  <div class="eyebrow-amber" style="justify-content:center;">정부국책교육사업 실적 보유</div>
 
-  <h1>반복되는 업무는 시스템에 맡겨<br>시간과 비용을 아낄 수 있습니다</h1>
+  <h1 class="editorial-h1">반복되는 업무는 시스템에 맡겨<br>시간과 비용을 아낄 수 있습니다</h1>
+  <div class="sub">반복되는 운영 업무를 진단하고,<br>실제로 돌아가는 시스템으로 바꿉니다.</div>
 
   <div class="problem-list">
     <div class="problem-item"><span class="letter">A</span><span class="text">양식은 같지만 일련번호나 세부정보가 다른 서류를 매번 반복작업하고 계신가요?</span></div>
@@ -66,13 +71,13 @@
 
   <div class="cta-row">
     <a href="{{ url_for('marketing_live_demo') }}" class="btn btn-primary" style="height:44px; padding:0 24px;">라이브데모 체험하기</a>
-    <a href="{{ url_for('marketing_apply') }}" class="btn btn-primary" style="height:44px; padding:0 24px;">routineout 신청하기</a>
+    <a href="{{ url_for('marketing_apply') }}" class="btn btn-primary" style="height:44px; padding:0 24px;">Routineout 신청하기</a>
   </div>
 </div>
 
 <div class="section">
-  <div class="eyebrow"><span class="bar"></span>구축 완료 · 실제 운영 중</div>
-  <h2>정부국책교육사업에 실제로 구축 및 운영으로 증명된 시스템</h2>
+  <div class="eyebrow-amber">구축 완료 · 실제 운영 중</div>
+  <h2 class="editorial-h1">정부국책교육사업에 실제로 구축 및<br>운영으로 증명된 시스템</h2>
   <div class="intro">아래 4건은 실제 조직에서 설계·구축해 현재도 운영 중인 시스템입니다. 화면으로 직접 확인하려면 <a href="{{ url_for('marketing_live_demo') }}" style="color:var(--fg);">라이브데모 체험하기</a>를 눌러보세요.</div>
 
   <div class="case-grid">
@@ -100,8 +105,8 @@
 </div>
 
 <div class="section">
-  <div class="eyebrow"><span class="bar"></span>이런 상황이면</div>
-  <h2>같은 문제라면, 같은 방식으로 해결할 수 있습니다</h2>
+  <div class="eyebrow-amber">이런 상황이면</div>
+  <h2 class="editorial-h1">같은 문제라면, 같은 방식으로<br>해결할 수 있습니다</h2>
   <div class="checklist">
     <div class="check-item"><span class="mark">✓</span><span class="text">같은 문의·요청이 반복되고, 그때마다 담당자가 수작업으로 대응하고 있다</span></div>
     <div class="check-item"><span class="mark">✓</span><span class="text">데이터는 쌓이는데 통계화·구조화되지 않아 의사결정에 감이 개입한다</span></div>
@@ -110,13 +115,13 @@
   </div>
 
   <div class="closing-box">
-    <div class="line1">routineout은 홈페이지를 만드는 회사가 아닙니다.</div>
-    <div class="line2">반복되는 운영 업무를 진단하고,<br>실제로 돌아가는 시스템으로 바꾸는 회사입니다.</div>
+    <div class="line1">Routineout은 홈페이지를 만드는 회사가 아닙니다.</div>
+    <div class="line2 editorial-h1">반복되는 운영 업무를 진단하고,<br>실제로 돌아가는 시스템으로 바꾸는 회사입니다.</div>
   </div>
 </div>
 
-<div class="cta-row" style="margin-top:50px;">
-  <a href="{{ url_for('marketing_apply') }}" class="btn btn-primary" style="height:44px; padding:0 28px;">최초 상담은 무료 — routineout 신청하기</a>
+<div class="cta-row" style="margin-top:60px;">
+  <a href="{{ url_for('marketing_apply') }}" class="btn btn-primary" style="height:44px; padding:0 28px;">최초 상담은 무료 — Routineout 신청하기</a>
 </div>
 
 {% endblock %}
@@ -125,10 +130,10 @@
 <div class="site-footer">
   <div class="inner">
     <div class="biz-info">
-      <b>routineout</b> · 대표 강성완 · 사업자등록번호 525-14-02765<br>
+      <b>Routineout</b> · 대표 강성완 · 사업자등록번호 525-14-02765<br>
       이메일 ksw2219@naver.com · 010-5552-3874
     </div>
-    <div class="biz-info">© 2026 routineout. All rights reserved.</div>
+    <div class="biz-info">© 2026 Routineout. All rights reserved.</div>
   </div>
 </div>
 {% endblock %}
