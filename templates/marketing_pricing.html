@@ -3,16 +3,162 @@
 {% block title %}가격안내 - routineout{% endblock %}
 
 {% block extra_style %}
-  .intro { max-width: 640px; margin: 60px auto; text-align: center; }
+  .intro { max-width: 640px; margin: 60px auto 30px; text-align: center; }
   .intro h1 { font-size: 26px; font-weight: 800; margin-bottom: 14px; }
   .intro p { color: var(--muted); font-size: 13.5px; line-height: 1.8; }
+
+  .method-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; max-width: 900px; margin: 0 auto; }
+  @media(max-width: 760px) { .method-grid { grid-template-columns: 1fr; } }
+  .method-card { padding: 22px 24px; }
+  .method-card h3 { font-size: 16px; font-weight: 800; margin: 12px 0 8px; }
+  .method-card p { font-size: 13px; color: #cfcfd2; line-height: 1.7; }
+  .breakeven-note { text-align: center; color: var(--muted); font-size: 12.5px; margin: 18px auto 0; max-width: 640px; line-height: 1.7; }
+
+  .section-block { max-width: 1080px; margin: 60px auto 0; }
+  .section-block h2 { font-size: 19px; font-weight: 800; margin-bottom: 16px; }
+
+  .table-wrap { overflow-x: auto; border: 1px solid var(--card-border); border-radius: var(--radius-card); }
+  .price-table { width: 100%; min-width: 760px; font-size: 13px; }
+  .price-table th { font-size: 12px; white-space: nowrap; }
+  .price-table td { font-size: 13px; line-height: 1.5; vertical-align: middle; }
+  .price-table .mode-tag { display: inline-block; margin-top: 4px; }
+  .price-table .merged-cell { text-align: center; color: var(--muted); font-size: 12px; background: rgba(255,255,255,0.02); line-height: 1.6; }
+  .price-table .submuted { color: var(--muted); font-weight: 400; }
+  .price-table .e-row td { color: #cfcfd2; }
+
+  .table-footnote { color: var(--muted); font-size: 12px; margin-top: 12px; line-height: 1.7; }
+
+  .free-badge {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 14px;
+    background: var(--primary-bg); color: var(--primary-fg); font-weight: 700; font-size: 13px;
+    padding: 8px 16px; border-radius: var(--radius-pill);
+  }
+
+  .range-note { max-width: 720px; margin: 40px auto 0; text-align: center; color: var(--muted); font-size: 12.5px; line-height: 1.8; }
+
+  .closing-box { padding: 28px 32px; margin: 50px auto 0; max-width: 720px; text-align: center; background: rgba(255,255,255,0.04); }
+  .closing-box .line1 { font-size: 12.5px; color: var(--muted); margin-bottom: 10px; }
+  .closing-box .line2 { font-size: 19px; font-weight: 800; line-height: 1.55; }
+  .closing-box .line3 { font-size: 13px; color: #cfcfd2; margin-top: 14px; line-height: 1.7; }
+
+  .cta-row { text-align: center; margin: 30px 0 10px; }
 {% endblock %}
 
 {% block content %}
 <div class="intro">
   <h1 class="gradient-text">가격안내</h1>
-  <p>준비 중입니다.<br>귀사의 상황에 맞는 견적은 상담을 통해 안내드립니다.</p>
-  <a href="{{ url_for('marketing_apply') }}" class="btn btn-primary" style="height:42px; padding:0 24px; margin-top:20px; display:inline-flex;">routineout 신청하기</a>
+  <p>routineout은 두 가지 방식으로 이용할 수 있습니다. 정확한 견적은 무료 진단 상담 후 확정됩니다.</p>
+</div>
+
+<div class="method-grid">
+  <div class="card method-card">
+    <span class="badge badge-outline">일회성 구축형</span>
+    <h3>한 번 만들고, 직접 관리</h3>
+    <p>처음 한 번 저희가 시스템을 만들어드립니다. 이후 정보 갱신(강사 추가, 급여 규정 변경 등)은 엑셀 업로드 한 번으로 직접 반영하는 구조입니다. 초기 비용은 조금 높지만 월 사용료는 없습니다.</p>
+  </div>
+  <div class="card method-card">
+    <span class="badge badge-accent">월정액형</span>
+    <h3>가볍게 시작하고, 계속 맡기기</h3>
+    <p>초기 설정은 가볍게 해드리고, 이후 실시간 정보 갱신이나 새로운 요청사항 반영까지 routineout이 계속 담당합니다. 초기 비용은 낮은 대신 매달 소정의 유지비가 발생합니다.</p>
+  </div>
+</div>
+<div class="breakeven-note">기준: 이용 기간이 8개월 미만으로 예상되면 월정액형이, 8개월 이상 장기 이용이면 일회성 구축형이 더 유리합니다.</div>
+
+<div class="section-block">
+  <h2>서비스별 가격</h2>
+  <div class="table-wrap">
+    <table class="price-table">
+      <thead>
+        <tr>
+          <th>서비스</th>
+          <th>구축비용<br>소규모(~100인)</th>
+          <th>구축비용<br>일반규모(101~500인)</th>
+          <th>월정액비용<br>소규모</th>
+          <th>월정액비용<br>일반규모</th>
+          <th>대규모<br>(500인 초과)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>A. 서류 자동발급<br><span class="badge badge-outline mode-tag">일회성 구축</span></td>
+          <td>40~50만원</td>
+          <td>65~80만원</td>
+          <td>해당없음</td>
+          <td>해당없음</td>
+          <td rowspan="6" class="merged-cell">별도 협의<br>지점 수, 커스텀 요구사항에<br>따라 산정</td>
+        </tr>
+        <tr>
+          <td>A. 서류 자동발급<br><span class="badge badge-accent mode-tag">월정액형</span></td>
+          <td>20~30만원</td>
+          <td>30~50만원</td>
+          <td>2~3만원</td>
+          <td>3~5만원</td>
+        </tr>
+        <tr>
+          <td>B. 인력관리 통합자동화<br><span class="badge badge-outline mode-tag">일회성 구축</span></td>
+          <td>110~140만원</td>
+          <td>200~250만원</td>
+          <td>해당없음</td>
+          <td>해당없음</td>
+        </tr>
+        <tr>
+          <td>B. 인력관리 통합자동화<br><span class="badge badge-accent mode-tag">월정액형</span></td>
+          <td>60~80만원</td>
+          <td>110~145만원</td>
+          <td>6~8만원</td>
+          <td>11~14만원</td>
+        </tr>
+        <tr>
+          <td>D. 통합패키지 A+B<br><span class="badge badge-outline mode-tag">일회성 구축</span></td>
+          <td>140~170만원</td>
+          <td>250~310만원</td>
+          <td>해당없음</td>
+          <td>해당없음</td>
+        </tr>
+        <tr>
+          <td>D. 통합패키지 A+B<br><span class="badge badge-accent mode-tag">월정액형</span></td>
+          <td>75~95만원</td>
+          <td>135~170만원</td>
+          <td>8~10만원</td>
+          <td>14~18만원</td>
+        </tr>
+        <tr class="e-row">
+          <td colspan="5">E. 커스텀 웹사이트/시스템 구축 <span class="submuted">(신청폼 연동·관리자 대시보드 등 기능 포함)</span></td>
+          <td class="merged-cell">상담 후 웹사이트<br>규모 및 기능에<br>따라 가격책정</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="table-footnote">표에 명시된 기능 외 추가 옵션(예: 인력관리에 GPS 출퇴근 관리 추가) 요청 시 별도 가격 협의. 일회성 구축은 완료 후 14일 이내 2회까지 무상 A/S, 이후 유상입니다.</p>
+</div>
+
+<div class="section-block">
+  <h2>AI 경영진단·자문</h2>
+  <div class="table-wrap">
+    <table class="price-table">
+      <thead>
+        <tr><th>규모</th><th>진단비용(1회)</th><th>자문료(월 정기)</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>소규모 (~100인)</td><td>20만원</td><td>5만원</td></tr>
+        <tr><td>일반규모 (101~500인)</td><td>40만원</td><td>10만원</td></tr>
+        <tr><td>대규모 (500인 초과)</td><td>협의</td><td>협의</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="free-badge">최초 1회 AI 경영진단·자문은 무료입니다</div>
+</div>
+
+<div class="range-note">금액이 범위로 표시된 이유는 관리 인원 수와 사업장별 예외 규칙의 복잡도에 따라 실제 개발 범위가 달라지기 때문입니다.</div>
+
+<div class="closing-box">
+  <div class="line1">위 가격표는 예시일 뿐입니다.</div>
+  <div class="line2">routineout은 정해진 상품을 파는 회사가 아니라,<br>반복되는 운영 업무를 진단하고<br>실제로 돌아가는 시스템으로<br>바꾸는 회사입니다.</div>
+  <div class="line3">표에 없는 업무도 상담을 통해 진단하고 맞춤 견적을 드립니다.</div>
+</div>
+
+<div class="cta-row">
+  <a href="{{ url_for('marketing_live_demo') }}" class="btn btn-primary" style="height:42px; padding:0 24px;">루틴아웃의 구조, 직접 확인해보세요</a>
 </div>
 {% endblock %}
 
