@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}강사 지원 - routineout{% endblock %}
+{% block title %}강사 지원 - Routineout{% endblock %}
 {% block nav %}{% endblock %}
 
 {% block extra_style %}
@@ -13,11 +13,11 @@
   .new-board-sub { font-size: 10.5px; color: var(--muted); margin-bottom: 10px; line-height: 1.5; }
   .new-board-list { display: flex; flex-direction: column; gap: 6px; }
   .new-board-item { display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--card-border); border-radius: 9999px; padding: 6px 14px; font-size: 12.5px; }
-  .new-board-item.has-new { border-color: transparent; background: var(--primary-bg); }
+  .new-board-item.has-new { border-color: transparent; background: var(--accent); }
   .new-board-item .region-name { color: #cfcfd2; }
-  .new-board-item.has-new .region-name { color: var(--primary-fg); font-weight: 700; }
+  .new-board-item.has-new .region-name { color: #1a1206; font-weight: 700; }
   .new-board-item .region-count { font-weight: 700; color: var(--muted); }
-  .new-board-item.has-new .region-count { color: var(--primary-fg); }
+  .new-board-item.has-new .region-count { color: #1a1206; }
   @media(max-width: 860px) {
     .layout { flex-direction: column; }
     .sidebar { width: 100%; position: static; }
@@ -38,7 +38,7 @@
 
   .rank-box { margin-bottom: 14px; overflow: hidden; }
   .rank-header { padding: 14px 22px; font-size: 14.5px; font-weight: 700; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--card-border); }
-  .rank-num { background: var(--primary-bg); color: var(--primary-fg); width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12.5px; font-weight: 800; }
+  .rank-num { background: var(--accent); color: #1a1206; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12.5px; font-weight: 800; }
   .rank-body { padding: 20px 22px 22px; }
 
   .center-info { border: 1px solid var(--card-border); background: rgba(255,255,255,0.03); border-radius: 14px; padding: 12px 16px; margin-top: 10px; font-size: 13px; color: #cfcfd2; display: none; }
@@ -76,8 +76,8 @@
 
   <div class="wrap">
 
-  <div class="form-header">
-    <h1 class="gradient-text" style="font-size:21px;">강사 지원서</h1>
+  <div class="form-header page-glow">
+    <h1 class="editorial-h1" style="font-size:25px;">강사 지원서</h1>
     <div class="card notice-box">
       각 지역 센터에서 신청해주신 희망 강의장·요일·시간을 토대로 지원해 주세요.<br>
       <b>최대 5지망</b>까지 지원 가능하며, 센터명 옆 괄호는 해당 센터의 <b>운영 예정 월</b>입니다.<br>

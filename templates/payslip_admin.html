@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}급여명세서 어드민 - routineout{% endblock %}
+{% block title %}급여명세서 어드민 - Routineout{% endblock %}
 {% block nav %}
 <a href="{{ url_for('tenant_dashboard', tenant=tenant) }}" class="btn btn-outline">대시보드</a>
 <a href="{{ url_for('logout') }}" class="btn btn-outline">로그아웃</a>
@@ -11,14 +11,17 @@
   .applicant-list { flex: 1 1 320px; padding: 0; overflow: hidden; }
   .applicant-list .row { display: flex; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid var(--card-border); text-decoration: none; color: var(--fg); font-size: 13.5px; }
   .applicant-list .row:hover { background: rgba(255,255,255,0.04); }
-  .applicant-list .row.active { background: var(--primary-bg); color: var(--primary-fg); font-weight: 700; }
+  .applicant-list .row.active { background: var(--accent); color: #1a1206; font-weight: 700; }
+  .page-head { padding: 16px 0 4px; }
   .detail-panel { flex: 1 1 320px; padding: 24px; }
   .detail-panel .num { font-size: 26px; font-weight: 700; }
 {% endblock %}
 
 {% block content %}
-<h1 class="gradient-text">급여명세서 어드민</h1>
-<p style="color: var(--muted);">근무 기록이 있는 전원이 급여명세서를 신청했다고 가정한 목록입니다.</p>
+<div class="page-glow page-head">
+  <h1 class="editorial-h1" style="font-size:26px;">급여명세서 어드민</h1>
+  <p style="color: var(--muted);">근무 기록이 있는 전원이 급여명세서를 신청했다고 가정한 목록입니다.</p>
+</div>
 
 <div class="split">
   <div class="card applicant-list">

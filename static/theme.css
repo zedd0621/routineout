@@ -5,10 +5,12 @@
    표시(뱃지 dot)에만 최소한으로 쓰고 브랜드 액센트로는 안 쓴다.
    <link rel="stylesheet" href="{{ url_for('static', filename='theme.css') }}">
 
-   ※ 2026-08-12부터 마케팅 페이지(marketing_*.html)는 아래 "에디토리얼" 톤으로 전환.
-   레퍼런스: obsidianos.com — 순검정 유지, 세리프 헤드라인 + 중앙정렬 + 여백,
-   앰버 글로우 하나만 포인트로 사용. --accent/.editorial-h1이 그 확장분.
-   내부 테넌트 화면(대시보드/관리자 등)은 기존 Linear 톤 그대로 유지 — 손대지 않음.
+   ※ 2026-08-12부터 obsidianos.com 레퍼런스의 "에디토리얼" 톤으로 전환, 이후
+   내부 테넌트 화면(대시보드/관리자 등)까지 전체 확장 완료. 세리프 헤드라인은
+   페이지 제목에만(.editorial-h1), 표/폼 등 실사용 요소는 기능 위주 유지.
+   --accent(앰버)는 "선택됨/강조" 의미로 badge-accent·체크선택·tree active·
+   kpi 라벨에 시스템 차원으로 적용. 화이트 필(--primary-bg)은 "주요 제출 액션"
+   전용으로 분리 유지 — 앰버=강조, 화이트=액션이라는 원칙으로 구분한다.
    ============================================================ */
 
 :root {
@@ -71,6 +73,11 @@ body {
 }
 .eyebrow-amber::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
 
+/* — 페이지 상단 은은한 앰버 글로우(모든 페이지 헤더 공통 유틸리티) — */
+.page-glow {
+  background: radial-gradient(ellipse 460px 300px at 50% 0%, rgba(201,138,75,.09), transparent 60%);
+}
+
 /* — 카드: 헤어라인으로만 구분, 배경 거의 안 보임 — */
 .card {
   background: var(--card-bg);
@@ -100,7 +107,7 @@ body {
   display: inline-flex; align-items: center; border-radius: var(--radius-pill);
   padding: 2px 10px; font-size: 11.5px; font-weight: 700; border: 1px solid var(--card-border);
 }
-.badge-accent { background: var(--primary-bg); color: var(--primary-fg); border-color: transparent; }
+.badge-accent { background: var(--accent); color: #1a1206; border-color: transparent; }
 .badge-outline { color: var(--fg); background: rgba(255,255,255,0.05); }
 .badge-muted { color: var(--muted); }
 /* 상태 점(dot) — 뱃지 앞에 붙여서 카테고리를 색으로 구분할 때만 사용 */
@@ -134,7 +141,7 @@ select, select option {
   color: #cfcfd2; background: rgba(255,255,255,0.02);
 }
 .check-group label:has(input:checked) {
-  border-color: transparent; background: var(--primary-bg); color: var(--primary-fg); font-weight: 700;
+  border-color: transparent; background: var(--accent); color: #1a1206; font-weight: 700;
 }
 .check-group input { accent-color: var(--fg); }
 
@@ -147,7 +154,7 @@ select, select option {
 
 /* — KPI 카드: 숫자는 표 형태 정렬을 위해 tabular-nums — */
 .kpi-card { border: 1px solid var(--card-border); border-radius: var(--radius-card); padding: 20px; }
-.kpi-card .klabel { font-size: 13px; color: var(--muted); margin-bottom: 8px; }
+.kpi-card .klabel { font-size: 11.5px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--accent); margin-bottom: 8px; }
 .kpi-card .kvalue .num { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
 .kpi-card .kvalue .unit { font-size: 14px; font-weight: 400; color: var(--muted); margin-left: 3px; }
 
@@ -158,8 +165,8 @@ select, select option {
   display: flex; justify-content: space-between; align-items: center;
 }
 .tree-item:hover { background: rgba(255,255,255,0.06); }
-.tree-item.active { background: var(--primary-bg); color: var(--primary-fg); font-weight: 700; }
-.tree-item.active .count { color: var(--primary-fg); opacity: 0.65; }
+.tree-item.active { background: var(--accent); color: #1a1206; font-weight: 700; }
+.tree-item.active .count { color: #1a1206; opacity: 0.7; }
 .tree-item .count { font-size: 11px; color: var(--muted); }
 
 /* — 테이블 — */

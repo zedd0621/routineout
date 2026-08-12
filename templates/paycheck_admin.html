@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}급여확인 어드민 - routineout{% endblock %}
+{% block title %}급여확인 어드민 - Routineout{% endblock %}
 {% block nav %}
 <a href="{{ url_for('paycheck_admin_download', tenant=tenant) }}" class="btn btn-outline">동의내역 엑셀 다운로드</a>
 <a href="{{ url_for('tenant_dashboard', tenant=tenant) }}" class="btn btn-outline">대시보드</a>
@@ -8,6 +8,7 @@
 {% endblock %}
 
 {% block extra_style %}
+  .page-head { padding: 16px 0 4px; }
   .section-title { margin-top: 32px; margin-bottom: 12px; font-size: 15px; color: var(--muted); }
   .status-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 16px 0 24px; }
   .search-box { max-width: 320px; margin-bottom: 12px; }
@@ -15,8 +16,10 @@
 {% endblock %}
 
 {% block content %}
-<h1 class="gradient-text">급여확인 어드민</h1>
-<p style="color: var(--muted);">개인정보는 마스킹 처리됩니다.</p>
+<div class="page-glow page-head">
+  <h1 class="editorial-h1" style="font-size:26px;">급여확인 어드민</h1>
+  <p style="color: var(--muted);">개인정보는 마스킹 처리됩니다.</p>
+</div>
 
 <h2 class="section-title" style="margin-top:16px;">현재 등록 현황</h2>
 <div class="status-grid">

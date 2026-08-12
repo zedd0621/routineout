@@ -1,21 +1,25 @@
 {% extends "base.html" %}
 
-{% block title %}{{ tenant }} 데모 대시보드 - routineout{% endblock %}
+{% block title %}{{ tenant }} 데모 대시보드 - Routineout{% endblock %}
 
 {% block nav %}
 <a href="{{ url_for('logout') }}" class="btn btn-outline">로그아웃</a>
 {% endblock %}
 
 {% block extra_style %}
+  .dash-head { padding: 20px 0 8px; }
   .tile-grid { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 24px; }
   .tile { flex: 1 1 180px; padding: 24px 20px; text-decoration: none; display: block; }
+  .tile .badge-outline { color: var(--accent); border-color: rgba(201,138,75,.3); }
   .tile h3 { font-size: 15px; margin: 12px 0 6px; color: var(--fg); }
   .tile p { font-size: 12.5px; color: var(--muted); margin: 0; }
 {% endblock %}
 
 {% block content %}
-<h1 class="gradient-text" style="margin-top: 16px;">{{ tenant }} 데모</h1>
-<p style="color: var(--muted);">고객 미팅용 가상 시연 테넌트 — 모든 데이터는 더미 데이터입니다.</p>
+<div class="page-glow dash-head">
+  <h1 class="editorial-h1" style="font-size:28px;">{{ tenant }} 데모</h1>
+  <p style="color: var(--muted);">고객 미팅용 가상 시연 테넌트 — 모든 데이터는 더미 데이터입니다.</p>
+</div>
 
 <div class="tile-grid">
   <a class="card tile" href="{{ url_for('center_admin', tenant=tenant) }}">

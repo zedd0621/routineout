@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 
-{% block title %}동의 완료 - routineout{% endblock %}
+{% block title %}동의 완료 - Routineout{% endblock %}
 {% block nav %}{% endblock %}
 
 {% block content %}
-<div class="card" style="max-width: 420px; margin: 60px auto; padding: 32px; text-align: center;">
-  <h1 class="gradient-text">확인 완료</h1>
+<div class="card page-glow" style="max-width: 420px; margin: 60px auto; padding: 40px 32px; text-align: center;">
+  <h1 class="editorial-h1" style="font-size:24px;">확인 완료</h1>
   <p>{{ name }}님, {{ target_month }} 급여내역 확인 및 동의가 접수되었습니다.</p>
   <p style="font-size: 22px; font-weight: 700; margin-top: 12px;">{{ '{:,}'.format(total_pay|int) }}원</p>
 </div>

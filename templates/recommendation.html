@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}배치 매칭 추천 - routineout{% endblock %}
+{% block title %}배치 매칭 추천 - Routineout{% endblock %}
 {% block nav %}
 <a href="{{ url_for('tenant_dashboard', tenant=tenant) }}" class="btn btn-outline">대시보드</a>
 <a href="{{ url_for('logout') }}" class="btn btn-outline">로그아웃</a>
@@ -13,11 +13,14 @@
   .rec-card .score { font-size: 22px; font-weight: 700; }
   .rec-card .script { color: var(--muted); font-size: 13px; margin-top: 8px; }
   .rec-card ul { margin: 8px 0 0; padding-left: 18px; font-size: 12.5px; color: #cfcfd2; }
+  .page-head { padding: 16px 0 4px; }
 {% endblock %}
 
 {% block content %}
-<h1 class="gradient-text">배치 매칭 추천</h1>
-<p style="color: var(--muted);">확정된 센터를 선택하면 조건에 맞는 강사를 점수순으로 추천합니다.</p>
+<div class="page-glow page-head">
+  <h1 class="editorial-h1" style="font-size:26px;">배치 매칭 추천</h1>
+  <p style="color: var(--muted);">확정된 센터를 선택하면 조건에 맞는 강사를 점수순으로 추천합니다.</p>
+</div>
 
 <form class="select-row" method="get">
   <div class="field">
