@@ -36,6 +36,11 @@ def marketing_home():
     return render_template('marketing_home.html')
 
 
+@app.route('/philosophy')
+def marketing_philosophy():
+    return render_template('marketing_philosophy.html')
+
+
 @app.route('/live-demo')
 def marketing_live_demo():
     return render_template('marketing_live_demo.html')
@@ -51,9 +56,13 @@ def marketing_apply():
     if request.method == 'POST':
         conn = leads_db.get_db()
         conn.execute(
-            'INSERT INTO leads (submitted_at, name, phone, message) VALUES (?, ?, ?, ?)',
+            'INSERT INTO leads (submitted_at, name, phone, email, services, org_size, usage_pref, message) '
+            'VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
             (datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-             request.form.get('name', ''), request.form.get('phone', ''), request.form.get('message', ''))
+             request.form.get('name', ''), request.form.get('phone', ''), request.form.get('email', ''),
+             ', '.join(request.form.getlist('services')),
+             request.form.get('org_size', ''), request.form.get('usage_pref', ''),
+             request.form.get('message', ''))
         )
         conn.commit()
         conn.close()
@@ -86,9 +95,10 @@ def leads_download():
     conn.close()
     output = io.StringIO()
     writer = csv.writer(output)
-    writer.writerow(['id', '신청일시', '이름', '연락처', '문의내용'])
+    writer.writerow(['id', '신청일시', '이름', '연락처', '이메일', '관심서비스', '관리규모', '이용방식', '문의내용'])
     for r in rows:
-        writer.writerow([r['id'], r['submitted_at'], r['name'], r['phone'], r['message']])
+        writer.writerow([r['id'], r['submitted_at'], r['name'], r['phone'], r['email'],
+                          r['services'], r['org_size'], r['usage_pref'], r['message']])
     return Response(
         output.getvalue().encode('utf-8-sig'),
         mimetype='text/csv',

@@ -12,17 +12,21 @@
 
 <div class="card" style="overflow-x: auto; margin-top: 16px;">
 <table>
-  <thead><tr><th>신청일시</th><th>이름</th><th>연락처</th><th>문의내용</th></tr></thead>
+  <thead><tr><th>신청일시</th><th>이름</th><th>연락처</th><th>이메일</th><th>관심서비스</th><th>관리규모</th><th>이용방식</th><th>문의내용</th></tr></thead>
   <tbody>
     {% for r in rows %}
     <tr>
       <td>{{ r.submitted_at }}</td>
       <td>{{ r.name }}</td>
       <td>{{ r.phone }}</td>
+      <td>{{ r.email }}</td>
+      <td>{{ r.services }}</td>
+      <td>{{ r.org_size }}</td>
+      <td>{{ r.usage_pref }}</td>
       <td>{{ r.message }}</td>
     </tr>
     {% else %}
-    <tr><td colspan="4" style="color: var(--muted);">신청 내역이 없습니다.</td></tr>
+    <tr><td colspan="8" style="color: var(--muted);">신청 내역이 없습니다.</td></tr>
     {% endfor %}
   </tbody>
 </table>

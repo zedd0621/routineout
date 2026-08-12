@@ -18,8 +18,17 @@ def init_db():
             submitted_at TEXT,
             name TEXT,
             phone TEXT,
+            email TEXT,
+            services TEXT,
+            org_size TEXT,
+            usage_pref TEXT,
             message TEXT
         )
     ''')
+    for col in ('email', 'services', 'org_size', 'usage_pref'):
+        try:
+            conn.execute(f'ALTER TABLE leads ADD COLUMN {col} TEXT')
+        except sqlite3.OperationalError:
+            pass
     conn.commit()
     conn.close()

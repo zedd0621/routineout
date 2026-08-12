@@ -3,13 +3,24 @@
 {% block title %}routineout 신청하기{% endblock %}
 
 {% block extra_style %}
-  .form-wrap { max-width: 480px; margin: 40px auto; }
+  .form-wrap { max-width: 560px; margin: 40px auto; }
   .form-wrap h1 { font-size: 24px; font-weight: 800; margin-bottom: 10px; text-align: center; }
   .form-wrap .notice { color: var(--muted); font-size: 13px; text-align: center; margin-bottom: 24px; line-height: 1.7; }
-  .form-card { padding: 28px; }
+  .form-card { padding: 30px; }
+
+  .form-section { margin-bottom: 26px; }
+  .form-section:last-of-type { margin-bottom: 0; }
+  .form-section .section-label { display: flex; align-items: center; gap: 8px; font-size: 11.5px; font-weight: 700; color: var(--muted); letter-spacing: 0.02em; margin-bottom: 14px; }
+  .form-section .section-label .bar { width: 16px; height: 2px; background: var(--card-border); display: inline-block; }
+
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 600px) { .field-row { grid-template-columns: 1fr; } }
+
   .form-card .field { margin-bottom: 16px; }
-  .form-card textarea { width: 100%; border: 1px solid var(--card-border); border-radius: var(--radius-field); padding: 10px 14px; font-size: 14px; color: var(--fg); background: rgba(255,255,255,0.04); font-family: inherit; resize: vertical; min-height: 100px; }
-  .form-card .btn { width: 100%; }
+  .form-card .field:last-child { margin-bottom: 0; }
+  .form-card .field-hint { color: var(--muted); font-size: 12px; margin-top: 5px; line-height: 1.5; }
+  .form-card textarea { width: 100%; border: 1px solid var(--card-border); border-radius: var(--radius-field); padding: 10px 14px; font-size: 14px; color: var(--fg); background: rgba(255,255,255,0.04); font-family: inherit; resize: vertical; min-height: 90px; }
+  .form-card .btn { width: 100%; margin-top: 6px; }
 {% endblock %}
 
 {% block content %}
@@ -21,12 +32,59 @@
   </p>
 
   <form class="card form-card" method="post">
-    <div class="field"><label>이름 <span class="req">*</span></label><input type="text" name="name" required></div>
-    <div class="field"><label>연락처 <span class="req">*</span></label><input type="tel" name="phone" placeholder="010-1234-5678" required></div>
-    <div class="field">
-      <label>비즈니스 페인포인트 또는 희망하시는 자동화 내용</label>
-      <textarea name="message" placeholder="예: 매달 강사료 정산을 엑셀로 수기 계산하고 있는데 자동화하고 싶습니다."></textarea>
+
+    <div class="form-section">
+      <div class="section-label"><span class="bar"></span>연락처</div>
+      <div class="field-row">
+        <div class="field"><label>이름 <span class="req">*</span></label><input type="text" name="name" required></div>
+        <div class="field"><label>연락처 <span class="req">*</span></label><input type="tel" name="phone" placeholder="010-1234-5678" required></div>
+      </div>
+      <div class="field"><label>이메일</label><input type="email" name="email" placeholder="선택 — 견적서 발송용"></div>
     </div>
+
+    <div class="form-section">
+      <div class="section-label"><span class="bar"></span>어떤 도움이 필요하신가요?</div>
+
+      <div class="field">
+        <label>관심 있는 서비스 (복수 선택 가능)</label>
+        <div class="check-group">
+          <label><input type="checkbox" name="services" value="서류 자동발급"> 서류 자동발급</label>
+          <label><input type="checkbox" name="services" value="인력관리 통합자동화"> 인력관리 통합자동화</label>
+          <label><input type="checkbox" name="services" value="재무 자동화"> 재무 자동화 (매출·지출 정리 및 리포트)</label>
+          <label><input type="checkbox" name="services" value="AI 경영진단·자문"> AI 경영진단·자문</label>
+          <label><input type="checkbox" name="services" value="커스텀 웹사이트/시스템 구축"> 커스텀 웹사이트/시스템 구축</label>
+          <label><input type="checkbox" name="services" value="잘 모르겠음"> 잘 모르겠음, 상담받고 싶음</label>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>관리 인원 규모</label>
+        <div class="field-hint">귀사 직원 수가 아니라, 시스템이 관리할 대상 인원 수를 의미합니다 (예: 파견 강사, 관리 대상 회원 등)</div>
+        <div class="check-group" style="margin-top:10px;">
+          <label><input type="radio" name="org_size" value="소규모(100인 이하)"> 소규모 (100인 이하)</label>
+          <label><input type="radio" name="org_size" value="일반규모(101~500인)"> 일반규모 (101~500인)</label>
+          <label><input type="radio" name="org_size" value="대규모(500인 초과)"> 대규모 (500인 초과)</label>
+          <label><input type="radio" name="org_size" value="모름"> 모름/해당없음</label>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>이용 방식 선호</label>
+        <div class="check-group">
+          <label><input type="radio" name="usage_pref" value="일회성 구축형"> 일회성 구축형</label>
+          <label><input type="radio" name="usage_pref" value="월정액형"> 월정액형</label>
+          <label><input type="radio" name="usage_pref" value="상담 후 결정"> 상담 후 결정하고 싶음</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="section-label"><span class="bar"></span>추가로 알려주실 내용</div>
+      <div class="field">
+        <textarea name="message" placeholder="예: 매달 강사료 정산을 엑셀로 수기 계산하고 있는데 자동화하고 싶습니다."></textarea>
+      </div>
+    </div>
+
     <button type="submit" class="btn btn-primary">신청하기</button>
   </form>
 </div>
