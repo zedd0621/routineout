@@ -90,6 +90,13 @@ def test_marketing_pages(app):
         for path in ['/', '/philosophy', '/pricing', '/live-demo', '/apply', '/login']:
             expect_status(c, path, 200, f'[마케팅] {path} → 200')
 
+        # 배포 검증용 엔드포인트 — deploy.sh 가 이 값을 폴링해 재기동을 확인한다
+        resp = c.get('/healthz')
+        check('[배포] /healthz → 200', resp.status_code == 200, f'실제 {resp.status_code}')
+        data = resp.get_json() if resp.status_code == 200 else {}
+        check('[배포] /healthz 가 커밋 리비전을 반환', bool(data.get('rev')),
+              f"실제 rev={data.get('rev')!r} (없으면 배포 확인이 불가능해진다)")
+
 
 # ══════════════════════════════════════════════════════════════
 # B. 접근 제어 — 미인증 차단 / 없는 테넌트 404 / 테넌트 격리

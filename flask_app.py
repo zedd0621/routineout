@@ -1,6 +1,7 @@
 import csv
 import io
 import json
+import os
 from datetime import datetime
 from urllib.parse import quote
 
@@ -26,6 +27,35 @@ for _slug in TENANTS:
 leads_db.init_db()
 rate_limit.init_db()
 audit.init_db()
+
+
+def _current_revision():
+    """현재 배포된 코드의 git 커밋 해시(짧은 형식). 배포 검증용.
+
+    PythonAnywhere는 `touch wsgi` 직후 즉시 재기동되지 않는다. 실제로 2026-08-16
+    두 차례(암호화 배포, 가격표 배포) 구버전 워커가 계속 응답한 일이 있었다.
+    배포 스크립트가 이 값을 폴링해 신버전이 실제로 떴는지 확인한다.
+    """
+    try:
+        git_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '.git')
+        with open(os.path.join(git_dir, 'HEAD'), encoding='utf-8') as f:
+            head = f.read().strip()
+        if head.startswith('ref:'):
+            ref = head.split(' ', 1)[1].strip()
+            with open(os.path.join(git_dir, ref), encoding='utf-8') as f:
+                return f.read().strip()[:12]
+        return head[:12]
+    except OSError:
+        return 'unknown'
+
+
+REVISION = _current_revision()
+
+
+@app.route('/healthz')
+def healthz():
+    """배포 확인용. 워커가 재기동되면 REVISION 이 새 커밋 해시로 바뀐다."""
+    return {'ok': True, 'rev': REVISION}
 
 
 def _tenant_of_username(username):
