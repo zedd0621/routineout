@@ -9,3 +9,5 @@ tenant_data/
 enc_key.txt
 *.bak
 *.pre-encrypt.bak
+backup_key.txt
+backup_dryrun_*.enc
