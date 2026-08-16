@@ -9,7 +9,8 @@ from werkzeug.security import check_password_hash
 
 from local_config import SECRET_KEY, TENANTS, OWNER_PASSWORD_HASH
 from tenant_db import get_db, init_db, paycheck_folder
-from masking import mask_name, mask_birth, mask_phone
+from masking import mask_name, mask_birth, mask_phone, mask_account
+import crypto_store
 import payroll_engine as pay
 import recommendation_engine as rec
 import leads_db
@@ -648,10 +649,12 @@ def paycheck_consent(tenant):
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ''', (
         datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-        f.get('name', ''), f.get('birth', ''), f.get('tel_last4', ''),
+        f.get('name', ''), crypto_store.encrypt(f.get('birth', '')), f.get('tel_last4', ''),
         f.get('target_month', ''), int(f.get('total_pay', 0) or 0),
         ip, f.get('snapshot_json', ''),
-        f.get('bank_name', ''), f.get('account_number', ''), f.get('insurance_type', '')
+        f.get('bank_name', ''),
+        crypto_store.encrypt(f.get('account_number', '')),
+        f.get('insurance_type', '')
     ))
     conn.commit()
     conn.close()
@@ -679,8 +682,11 @@ def paycheck_admin(tenant):
 
     masked_consents = []
     for c in consents:
-        d = dict(c)
+        d = crypto_store.decrypt_row(c, ('account_number', 'birth'))
         d['name'] = mask_name(d['name'])
+        d['birth'] = mask_birth(d['birth'])
+        # 화면에는 마스킹본만. 전체 계좌번호는 내려받기(감사로그 기록됨)로만 나간다.
+        d['account_number'] = mask_account(d['account_number'])
         masked_consents.append(d)
 
     payroll_target = available_months[:1]
@@ -711,7 +717,8 @@ def paycheck_admin_download(tenant):
     writer = csv.writer(output)
     writer.writerow(col_names)
     for r in rows:
-        writer.writerow([r[k] for k in col_names])
+        d = crypto_store.decrypt_row(r, ('account_number', 'birth'))
+        writer.writerow([d[k] for k in col_names])
     return Response(
         output.getvalue().encode('utf-8-sig'),
         mimetype='text/csv',
@@ -811,7 +818,8 @@ def _build_payslip_pdf(tenant, name, target_month, birth):
         (name, target_month)
     ).fetchone()
     conn.close()
-    bank_name, account_number = (row['bank_name'], row['account_number']) if row else (None, None)
+    bank_name = row['bank_name'] if row else None
+    account_number = crypto_store.decrypt(row['account_number']) if row else None
 
     return pay.generate_payslip_pdf('routineout (데모)', name, target_month, base_total, lecture_total,
                                      weekly_total, total_hours, lecture_hours,

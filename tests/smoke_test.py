@@ -39,6 +39,9 @@ import flask_app  # noqa: E402
 import payroll_engine as pay  # noqa: E402
 import rate_limit  # noqa: E402
 import audit  # noqa: E402
+import crypto_store  # noqa: E402
+from masking import mask_account  # noqa: E402
+from tenant_db import db_path as tenant_db_path  # noqa: E402
 
 REAL_TENANTS = [t for t in local_config.TENANTS if t != SMOKE_TENANT]
 
@@ -395,6 +398,72 @@ def test_audit_log(app):
 
 
 # ══════════════════════════════════════════════════════════════
+# H. 민감정보 암호화 (Phase 0-1)
+#    핵심 검사: 계좌번호가 DB에 평문으로 남지 않는가.
+# ══════════════════════════════════════════════════════════════
+def test_encryption(app):
+    # ── 키·라운드트립 ──
+    check('[암호화] 키 자가검사 통과', crypto_store.self_test())
+
+    sample = '110-987-654321'
+    token = crypto_store.encrypt(sample)
+    check('[암호화] 암호문에 enc1: 접두어', crypto_store.is_encrypted(token), f'{token[:12]}...')
+    check('[암호화] 원문이 암호문에 노출되지 않음', sample not in token)
+    check('[암호화] 복호화 시 원문 일치', crypto_store.decrypt(token) == sample)
+
+    # ── 하위호환: 접두어 없는 평문은 그대로 통과 (마이그레이션 중 서비스 유지) ──
+    check('[암호화] 평문 입력은 그대로 반환', crypto_store.decrypt('110-123-456') == '110-123-456')
+    check('[암호화] 이중 암호화 방지', crypto_store.encrypt(token) == token)
+    for empty in ('', None):
+        check(f'[암호화] 빈 값({empty!r}) 통과', crypto_store.encrypt(empty) == empty)
+
+    # ── 마스킹 ──
+    # '110-987-654321' -> 숫자 12자리 -> 앞 8자리 마스킹 + 뒤 4자리
+    check('[암호화] 계좌 마스킹 뒤 4자리만 노출',
+          mask_account('110-987-654321') == '********4321',
+          f"실제 {mask_account('110-987-654321')}")
+    check('[암호화] 짧은 계좌는 전부 마스킹', mask_account('1234') == '****')
+
+    # ── 종단 검사: 동의 제출 → DB에 평문 계좌번호가 없어야 한다 ──
+    secret_acct = '9999-8888-777666'
+    secret_birth = '1977-03-14'
+    with app.test_client() as c:
+        c.post(f'/{SMOKE_TENANT}/paycheck/consent', data={
+            'name': '암호화테스트', 'birth': secret_birth, 'tel_last4': '1234',
+            'target_month': '2026-08', 'total_pay': '1234567',
+            'snapshot_json': '{}', 'bank_name': '국민은행',
+            'account_number': secret_acct, 'insurance_type': '4대보험',
+        })
+
+    conn = sqlite3.connect(tenant_db_path(SMOKE_TENANT))
+    conn.row_factory = sqlite3.Row
+    row = conn.execute(
+        'SELECT * FROM paycheck_consents WHERE name = ? ORDER BY id DESC LIMIT 1',
+        ('암호화테스트',)).fetchone()
+    conn.close()
+
+    check('[암호화] 동의 기록이 저장됨', row is not None)
+    if row:
+        check('[암호화] ★ DB에 평문 계좌번호 없음', row['account_number'] != secret_acct,
+              f"실제 저장값 {str(row['account_number'])[:16]}...")
+        check('[암호화] 계좌번호가 암호문 형식', crypto_store.is_encrypted(row['account_number']))
+        check('[암호화] ★ DB에 평문 생년월일 없음', row['birth'] != secret_birth)
+        check('[암호화] 복호화하면 원래 계좌번호',
+              crypto_store.decrypt(row['account_number']) == secret_acct)
+
+    # ── 관리자 화면에는 마스킹본만, 내려받기에는 실제 값 ──
+    with app.test_client() as c:
+        c.post('/login', data={'username': SMOKE_TENANT, 'password': SMOKE_PW})
+        html = c.get(f'/{SMOKE_TENANT}/paycheck-admin').get_data(as_text=True)
+        check('[암호화] 관리자 화면에 평문 계좌번호 미노출', secret_acct not in html)
+        check('[암호화] 관리자 화면에 암호문 그대로 노출 안 됨', 'enc1:' not in html)
+
+        csv_text = c.get(f'/{SMOKE_TENANT}/paycheck-admin/download').get_data(as_text=True)
+        check('[암호화] 내려받기에는 복호화된 실제 계좌번호', secret_acct in csv_text)
+        check('[암호화] 내려받기에 암호문이 그대로 나가지 않음', 'enc1:' not in csv_text)
+
+
+# ══════════════════════════════════════════════════════════════
 # 실행
 # ══════════════════════════════════════════════════════════════
 def main():
@@ -409,6 +478,7 @@ def main():
         test_payroll_fixed_values()
         test_rate_limit(app)
         test_audit_log(app)
+        test_encryption(app)
     finally:
         try:
             _reset_all_limits()

@@ -22,6 +22,19 @@ def mask_birth(birth):
     return digits[0] + '*' * (len(digits) - 1)
 
 
+def mask_account(account):
+    """계좌번호에서 뒤 4자리만 남기고 마스킹.
+    예: '110-123-456789' -> '**********6789'
+    관리자 화면에는 마스킹본만 보여주고, 실제 이체에 필요한 전체 번호는
+    내려받기(감사로그에 기록되는 경로)로만 나가게 한다."""
+    if not account:
+        return account
+    digits = ''.join(c for c in str(account) if c.isdigit())
+    if len(digits) <= 4:
+        return '*' * len(digits)
+    return '*' * (len(digits) - 4) + digits[-4:]
+
+
 def mask_phone(tel):
     """전화번호 010-XXXX-XXXX 형태에서 앞 2자리만 남기고 마스킹.
     예: '010-5588-1234' -> '010-55**-****'"""

@@ -4,3 +4,8 @@ local_config.py
 *.db
 .venv/
 tenant_data/
+
+# 암호화 키 (절대 커밋 금지, 백업에서도 제외)
+enc_key.txt
+*.bak
+*.pre-encrypt.bak
