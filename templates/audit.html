@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}접근기록 - Routineout{% endblock %}
+{% block nav %}
+<a href="{{ url_for('tenant_audit_download', tenant=tenant) }}" class="btn btn-primary">기록 내려받기</a>
+<a href="{{ url_for('tenant_dashboard', tenant=tenant) }}" class="btn btn-outline">대시보드</a>
+<a href="{{ url_for('logout') }}" class="btn btn-outline">로그아웃</a>
+{% endblock %}
+
+{% block extra_style %}
+  .page-head { padding: 20px 0 6px; }
+  .page-head h1 { font-size: 24px; }
+  .page-head p { color: var(--muted); font-size: 12.5px; line-height: 1.7; margin-top: 8px; max-width: 680px; }
+
+  .filter-row { display: flex; gap: 8px; flex-wrap: wrap; margin: 18px 0 14px; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 9999px;
+          border: 1px solid var(--card-border); background: var(--card-bg); color: var(--fg);
+          font-size: 12px; text-decoration: none; }
+  .chip.on { background: var(--primary-bg); color: var(--primary-fg); font-weight: 700; border-color: transparent; }
+  .chip .n { color: var(--muted); font-size: 11px; }
+  .chip.on .n { color: var(--primary-fg); opacity: 0.75; }
+
+  .table-wrap { overflow-x: auto; border: 1px solid var(--card-border); border-radius: 16px; }
+  table.audit { width: 100%; min-width: 860px; border-collapse: collapse; font-size: 12.5px; }
+  table.audit th { text-align: left; padding: 12px 14px; font-size: 11px; color: var(--muted);
+                   letter-spacing: 0.04em; text-transform: uppercase; white-space: nowrap;
+                   border-bottom: 1px solid var(--card-border); }
+  table.audit td { padding: 11px 14px; border-top: 1px solid var(--card-border); vertical-align: middle; }
+  table.audit tr:first-child td { border-top: none; }
+  .when { color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .ip { color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .ev { display: inline-block; padding: 3px 10px; border-radius: 9999px; font-size: 11.5px;
+        background: rgba(255,255,255,0.07); white-space: nowrap; }
+  .ev.risk { background: rgba(255, 176, 66, 0.16); color: #ffb042; font-weight: 700; }
+  .who { font-weight: 700; }
+  .dim { color: var(--muted); }
+  .empty { padding: 48px 20px; text-align: center; color: var(--muted); font-size: 13px; line-height: 1.8; }
+  .note { color: var(--muted); font-size: 11.5px; margin-top: 12px; line-height: 1.7; }
+{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <h1>접근기록</h1>
+  <p>
+    이 시스템에서 발생한 로그인·조회·내려받기·변경 기록입니다. 기록은 추가만 되고 수정·삭제되지 않습니다.
+    정보 유출이나 데이터 손상이 발생했을 때 <b>어느 계정이 언제 어떤 자료에 접근했는지</b>를 이 기록으로 확인할 수 있습니다.
+  </p>
+</div>
+
+<div class="filter-row">
+  <a class="chip {% if not selected %}on{% endif %}" href="{{ url_for('tenant_audit', tenant=tenant) }}">
+    전체
+  </a>
+  {% for ev, n in counts %}
+  <a class="chip {% if selected == ev %}on{% endif %}"
+     href="{{ url_for('tenant_audit', tenant=tenant, event=ev) }}">
+    {{ labels.get(ev, ev) }} <span class="n">{{ n }}</span>
+  </a>
+  {% endfor %}
+</div>
+
+{% if rows %}
+<div class="table-wrap">
+  <table class="audit">
+    <thead>
+      <tr>
+        <th>일시</th>
+        <th>행위</th>
+        <th>주체</th>
+        <th>대상</th>
+        <th>IP</th>
+        <th>상세</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in rows %}
+      <tr>
+        <td class="when">{{ r['occurred_at'] }}</td>
+        <td>
+          <span class="ev {% if r['event'] in high_risk %}risk{% endif %}">
+            {{ labels.get(r['event'], r['event']) }}
+          </span>
+        </td>
+        <td class="who">{{ r['actor'] or '-' }}</td>
+        <td>{{ r['target'] or '-' }}</td>
+        <td class="ip">{{ r['ip'] or '-' }}</td>
+        <td class="dim">{{ r['detail'] or '-' }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+<p class="note">
+  최근 500건까지 표시됩니다. 전체 기록은 <b>기록 내려받기</b>로 확인하세요.
+  주황색으로 표시된 항목(내려받기·변경·시도초과 잠금)은 대량 반출이나 이상 접근에 해당하므로 우선 확인 대상입니다.
+</p>
+{% else %}
+<div class="table-wrap">
+  <div class="empty">
+    아직 기록이 없습니다.<br>
+    로그인, 급여 조회, 명세서 발급, 관리자 화면 접근이 발생하면 이곳에 자동으로 쌓입니다.
+  </div>
+</div>
+{% endif %}
+{% endblock %}

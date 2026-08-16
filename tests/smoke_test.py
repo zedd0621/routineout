@@ -38,6 +38,7 @@ local_config.TENANTS[SMOKE_TENANT] = {
 import flask_app  # noqa: E402
 import payroll_engine as pay  # noqa: E402
 import rate_limit  # noqa: E402
+import audit  # noqa: E402
 
 REAL_TENANTS = [t for t in local_config.TENANTS if t != SMOKE_TENANT]
 
@@ -56,7 +57,7 @@ PUBLIC_TENANT_PATHS = ['center', 'instructor', 'paycheck', 'payslip']
 # 로그인해야만 열려야 하는 관리자 화면
 ADMIN_TENANT_PATHS = [
     'dashboard', 'center-admin', 'instructor-admin',
-    'recommendation', 'paycheck-admin', 'payslip-admin',
+    'recommendation', 'paycheck-admin', 'payslip-admin', 'audit',
 ]
 
 _results = []
@@ -317,6 +318,83 @@ def test_rate_limit(app):
 
 
 # ══════════════════════════════════════════════════════════════
+# G. 감사로그 (Phase 0-3)
+#    로그가 없으면 사고 시 "우리 시스템 결함이 아니다"를 입증할 수 없다.
+#    따라서 "기록이 실제로 남는가"를 검사한다.
+# ══════════════════════════════════════════════════════════════
+def _audit_rows(tenant, event=None):
+    return audit.recent(tenant, limit=1000, event=event)
+
+
+def _audit_count(tenant, event):
+    return len(_audit_rows(tenant, event))
+
+
+def test_audit_log(app):
+    _reset_all_limits()
+
+    # ── 로그인 성공/실패가 해당 고객사 로그에 남는가 ──
+    before_ok = _audit_count(SMOKE_TENANT, audit.LOGIN_SUCCESS)
+    before_ng = _audit_count(SMOKE_TENANT, audit.LOGIN_FAIL)
+    with app.test_client() as c:
+        c.post('/login', data={'username': SMOKE_TENANT, 'password': 'wrong'})
+        c.post('/login', data={'username': SMOKE_TENANT, 'password': SMOKE_PW})
+    check('[감사] 로그인 실패 기록됨',
+          _audit_count(SMOKE_TENANT, audit.LOGIN_FAIL) == before_ng + 1,
+          f'{before_ng} → {_audit_count(SMOKE_TENANT, audit.LOGIN_FAIL)}')
+    check('[감사] 로그인 성공 기록됨',
+          _audit_count(SMOKE_TENANT, audit.LOGIN_SUCCESS) == before_ok + 1,
+          f'{before_ok} → {_audit_count(SMOKE_TENANT, audit.LOGIN_SUCCESS)}')
+
+    # ── 기록에 IP가 담기는가 (책임소재 확인의 핵심 필드) ──
+    rows = _audit_rows(SMOKE_TENANT, audit.LOGIN_SUCCESS)
+    check('[감사] 기록에 IP 포함', bool(rows and rows[0]['ip']),
+          f"실제 ip={rows[0]['ip'] if rows else '(행 없음)'}")
+    check('[감사] 기록에 발생시각 포함', bool(rows and rows[0]['occurred_at']))
+
+    # ── 급여조회 본인확인 실패가 기록되는가 ──
+    before = _audit_count(SMOKE_TENANT, audit.PAYCHECK_FAIL)
+    with app.test_client() as c:
+        c.post(f'/{SMOKE_TENANT}/paycheck',
+               data={'name': '없는사람', 'birth': '1990-01-01',
+                     'tel_last4': '0000', 'target_month': '2026-08'})
+    check('[감사] 급여조회 본인확인 실패 기록됨',
+          _audit_count(SMOKE_TENANT, audit.PAYCHECK_FAIL) == before + 1,
+          f'{before} → {_audit_count(SMOKE_TENANT, audit.PAYCHECK_FAIL)}')
+
+    # ── 관리자 조회·반출이 기록되는가 (대량 반출 경로가 핵심) ──
+    before_view = _audit_count(SMOKE_TENANT, audit.ADMIN_VIEW)
+    before_exp = _audit_count(SMOKE_TENANT, audit.ADMIN_EXPORT)
+    with app.test_client() as c:
+        c.post('/login', data={'username': SMOKE_TENANT, 'password': SMOKE_PW})
+        c.get(f'/{SMOKE_TENANT}/paycheck-admin')
+        c.get(f'/{SMOKE_TENANT}/instructor-admin/download')
+        expect_status(c, f'/{SMOKE_TENANT}/audit', 200, '[감사] 접근기록 화면 200')
+        expect_status(c, f'/{SMOKE_TENANT}/audit/download', 200, '[감사] 접근기록 CSV 200')
+    check('[감사] 관리자 조회 기록됨',
+          _audit_count(SMOKE_TENANT, audit.ADMIN_VIEW) > before_view,
+          f'{before_view} → {_audit_count(SMOKE_TENANT, audit.ADMIN_VIEW)}')
+    check('[감사] 관리자 내려받기 기록됨',
+          _audit_count(SMOKE_TENANT, audit.ADMIN_EXPORT) == before_exp + 1,
+          f'{before_exp} → {_audit_count(SMOKE_TENANT, audit.ADMIN_EXPORT)}')
+
+    # ── 접근기록 화면은 로그인 없이 열리면 안 된다 ──
+    with app.test_client() as c:
+        resp = c.get(f'/{SMOKE_TENANT}/audit')
+        ok = resp.status_code == 302 and '/login' in resp.headers.get('Location', '')
+        check('[감사] 미인증 접근기록 열람 차단', ok, f'실제 {resp.status_code}')
+
+    # ── 고객사 격리: A사 로그가 B사 DB에 섞이지 않는가 ──
+    for other in REAL_TENANTS:
+        rows_other = _audit_rows(other)
+        leaked = [r for r in rows_other if r['tenant'] and r['tenant'] != other]
+        check(f'[감사] {other} 로그에 타 고객사 기록 없음', not leaked,
+              f'{len(leaked)}건 혼입' if leaked else '')
+
+    _reset_all_limits()
+
+
+# ══════════════════════════════════════════════════════════════
 # 실행
 # ══════════════════════════════════════════════════════════════
 def main():
@@ -330,6 +408,7 @@ def main():
         test_admin_pages(app)
         test_payroll_fixed_values()
         test_rate_limit(app)
+        test_audit_log(app)
     finally:
         try:
             _reset_all_limits()

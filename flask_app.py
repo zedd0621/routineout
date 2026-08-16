@@ -14,14 +14,26 @@ import payroll_engine as pay
 import recommendation_engine as rec
 import leads_db
 import rate_limit
+import audit
 
 app = Flask(__name__)
 app.secret_key = SECRET_KEY
 
 for _slug in TENANTS:
     init_db(_slug)
+    audit.init_db(_slug)
 leads_db.init_db()
 rate_limit.init_db()
+audit.init_db()
+
+
+def _tenant_of_username(username):
+    """아이디로 테넌트를 역추적. 감사로그를 해당 고객사 DB에 남기기 위해 쓴다.
+    존재하지 않는 아이디면 None -> 전역 audit.db에 기록된다."""
+    for slug, config in TENANTS.items():
+        if username == config.get('username'):
+            return slug
+    return None
 
 
 def require_tenant(tenant):
@@ -83,8 +95,10 @@ def leads():
                                        error=rate_limit.lock_message(retry_after))
             if check_password_hash(OWNER_PASSWORD_HASH, request.form.get('password', '')):
                 rate_limit.clear('owner', rl_key)
+                audit.log(audit.OWNER_LOGIN_SUCCESS, request=request)
                 session['owner_logged_in'] = True
                 return redirect(url_for('leads'))
+            audit.log(audit.OWNER_LOGIN_FAIL, request=request)
             locked_for = rate_limit.record_failure('owner', rl_key)
             if locked_for:
                 return render_template('leads_login.html',
@@ -130,6 +144,8 @@ def login():
         rl_key = rate_limit.client_key(request)
         allowed, retry_after = rate_limit.check('login', rl_key)
         if not allowed:
+            audit.log(audit.LOGIN_LOCKED, tenant=_tenant_of_username(request.form.get('username', '')),
+                      actor=request.form.get('username', ''), request=request)
             return render_template('login.html', error=rate_limit.lock_message(retry_after))
 
         username = request.form.get('username', '')
@@ -137,9 +153,12 @@ def login():
         for slug, config in TENANTS.items():
             if username == config['username'] and check_password_hash(config['password_hash'], password):
                 rate_limit.clear('login', rl_key)
+                audit.log(audit.LOGIN_SUCCESS, tenant=slug, actor=username, request=request)
                 session['tenant'] = slug
                 return redirect(url_for('tenant_dashboard', tenant=slug))
 
+        audit.log(audit.LOGIN_FAIL, tenant=_tenant_of_username(username),
+                  actor=username, request=request)
         locked_for = rate_limit.record_failure('login', rl_key)
         if locked_for:
             return render_template('login.html', error=rate_limit.lock_message(locked_for))
@@ -160,6 +179,42 @@ def tenant_dashboard(tenant):
     if guard:
         return guard
     return render_template('dashboard.html', tenant=tenant)
+
+
+# ── 접근기록(감사로그) 열람 ──────────────────────────────────
+# "누가 언제 무엇을 조회했는지 확인해드립니다"를 실제로 성립시키는 화면.
+# 로그 열람 자체는 로그에 남기지 않는다(열람할 때마다 기록이 불어나 원래 기록을 덮으므로).
+
+@app.route('/<tenant>/audit')
+def tenant_audit(tenant):
+    guard = require_tenant(tenant)
+    if guard:
+        return guard
+    event = request.args.get('event') or None
+    rows = audit.recent(tenant, limit=500, event=event)
+    return render_template('audit.html', tenant=tenant, rows=rows,
+                           labels=audit.EVENT_LABELS, high_risk=audit.HIGH_RISK_EVENTS,
+                           counts=audit.counts_by_event(tenant), selected=event)
+
+
+@app.route('/<tenant>/audit/download')
+def tenant_audit_download(tenant):
+    guard = require_tenant(tenant)
+    if guard:
+        return guard
+    rows = audit.recent(tenant, limit=100000)
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(['일시', '행위', '주체', '대상', 'IP', '상세', 'User-Agent'])
+    for r in rows:
+        writer.writerow([r['occurred_at'], audit.EVENT_LABELS.get(r['event'], r['event']),
+                         r['actor'] or '', r['target'] or '', r['ip'] or '',
+                         r['detail'] or '', r['user_agent'] or ''])
+    return Response(
+        output.getvalue().encode('utf-8-sig'),
+        mimetype='text/csv',
+        headers={'Content-Disposition': f'attachment; filename={tenant}_audit_log.csv'}
+    )
 
 
 # ── 센터 문의 접수 ────────────────────────────────────────────
@@ -216,6 +271,8 @@ def center_admin(tenant):
     guard = require_tenant(tenant)
     if guard:
         return guard
+    audit.log(audit.ADMIN_VIEW, tenant=tenant, actor=session.get('tenant'),
+              detail='근무센터 현황 조회', request=request)
     conn = get_db(tenant)
     rows = conn.execute('SELECT * FROM responses ORDER BY id DESC').fetchall()
     conn.close()
@@ -227,6 +284,8 @@ def center_admin_add(tenant):
     guard = require_tenant(tenant)
     if guard:
         return guard
+    audit.log(audit.ADMIN_MODIFY, tenant=tenant, actor=session.get('tenant'),
+              detail='센터 수기 추가', request=request)
     f = request.form
     conn = get_db(tenant)
     conn.execute('''
@@ -257,6 +316,8 @@ def center_admin_download(tenant):
     guard = require_tenant(tenant)
     if guard:
         return guard
+    audit.log(audit.ADMIN_EXPORT, tenant=tenant, actor=session.get('tenant'),
+              detail='센터 목록 CSV 내려받기', request=request)
     conn = get_db(tenant)
     c = conn.execute('SELECT * FROM responses ORDER BY id DESC')
     rows = c.fetchall()
@@ -279,6 +340,8 @@ def center_admin_confirm(tenant, row_id):
     guard = require_tenant(tenant)
     if guard:
         return guard
+    audit.log(audit.ADMIN_MODIFY, tenant=tenant, actor=session.get('tenant'),
+              detail='센터 배치 확정', request=request)
     conn = get_db(tenant)
     cur = conn.execute('SELECT confirmed FROM responses WHERE id=?', (row_id,)).fetchone()
     if cur:
@@ -294,6 +357,8 @@ def center_admin_delete(tenant, row_id):
     guard = require_tenant(tenant)
     if guard:
         return guard
+    audit.log(audit.ADMIN_MODIFY, tenant=tenant, actor=session.get('tenant'),
+              detail='센터 삭제', request=request)
     conn = get_db(tenant)
     conn.execute('DELETE FROM responses WHERE id=?', (row_id,))
     conn.commit()
@@ -347,6 +412,8 @@ def instructor_admin(tenant):
     guard = require_tenant(tenant)
     if guard:
         return guard
+    audit.log(audit.ADMIN_VIEW, tenant=tenant, actor=session.get('tenant'),
+              detail='강사지원 현황 조회', request=request)
 
     conn = get_db(tenant)
     rows = conn.execute('SELECT * FROM instructor_applications ORDER BY id DESC').fetchall()
@@ -405,6 +472,8 @@ def instructor_admin_download(tenant):
     guard = require_tenant(tenant)
     if guard:
         return guard
+    audit.log(audit.ADMIN_EXPORT, tenant=tenant, actor=session.get('tenant'),
+              detail='강사 목록 CSV 내려받기', request=request)
     conn = get_db(tenant)
     rows = conn.execute('SELECT * FROM instructor_applications ORDER BY id DESC').fetchall()
     conn.close()
@@ -434,6 +503,8 @@ def instructor_admin_delete(tenant, row_id):
     guard = require_tenant(tenant)
     if guard:
         return guard
+    audit.log(audit.ADMIN_MODIFY, tenant=tenant, actor=session.get('tenant'),
+              detail='강사 지원내역 삭제', request=request)
     conn = get_db(tenant)
     conn.execute('DELETE FROM instructor_applications WHERE id=?', (row_id,))
     conn.commit()
@@ -448,6 +519,8 @@ def recommendation(tenant):
     guard = require_tenant(tenant)
     if guard:
         return guard
+    audit.log(audit.ADMIN_VIEW, tenant=tenant, actor=session.get('tenant'),
+              detail='센터-강사 추천 조회', request=request)
 
     conn = get_db(tenant)
     confirmed_centers = conn.execute(
@@ -511,6 +584,8 @@ def paycheck(tenant):
             error = '연락처 뒤 4자리가 일치하지 않습니다.'
 
         if error:
+            audit.log(audit.PAYCHECK_FAIL, tenant=tenant, actor=name,
+                      target=target_month, detail=error, request=request)
             locked_for = rate_limit.record_failure('paycheck', rl_key)
             if locked_for:
                 error = rate_limit.lock_message(locked_for)
@@ -519,6 +594,8 @@ def paycheck(tenant):
 
         # 본인 확인 통과 — 누적 실패 초기화
         rate_limit.clear('paycheck', rl_key)
+        audit.log(audit.PAYCHECK_VIEW, tenant=tenant, actor=name,
+                  target=target_month, request=request)
 
         worklog = pay.load_worklog(pf, target_month)
         entries = worklog.get(name, [])
@@ -578,6 +655,8 @@ def paycheck_consent(tenant):
     ))
     conn.commit()
     conn.close()
+    audit.log(audit.PAYCHECK_CONSENT, tenant=tenant, actor=f.get('name', ''),
+              target=f.get('target_month', ''), request=request)
     return render_template('paycheck_done.html', tenant=tenant, name=f.get('name', ''),
                             target_month=f.get('target_month', ''), total_pay=f.get('total_pay', ''))
 
@@ -587,6 +666,8 @@ def paycheck_admin(tenant):
     guard = require_tenant(tenant)
     if guard:
         return guard
+    audit.log(audit.ADMIN_VIEW, tenant=tenant, actor=session.get('tenant'),
+              detail='급여 집계 조회', request=request)
 
     pf = paycheck_folder(tenant)
     available_months = pay.get_available_months(pf)
@@ -619,6 +700,8 @@ def paycheck_admin_download(tenant):
     guard = require_tenant(tenant)
     if guard:
         return guard
+    audit.log(audit.ADMIN_EXPORT, tenant=tenant, actor=session.get('tenant'),
+              detail='급여 집계 CSV 내려받기', request=request)
     conn = get_db(tenant)
     c = conn.execute('SELECT * FROM paycheck_consents ORDER BY id DESC')
     rows = c.fetchall()
@@ -677,6 +760,8 @@ def payslip(tenant):
 
     if error:
         if identity_failed:
+            audit.log(audit.PAYSLIP_FAIL, tenant=tenant, actor=name,
+                      target=target_month, detail=error, request=request)
             locked_for = rate_limit.record_failure('payslip', rl_key)
             if locked_for:
                 error = rate_limit.lock_message(locked_for)
@@ -685,6 +770,8 @@ def payslip(tenant):
 
     # 본인 확인 통과 — 누적 실패 초기화
     rate_limit.clear('payslip', rl_key)
+    audit.log(audit.PAYSLIP_ISSUE, tenant=tenant, actor=name,
+              target=target_month, request=request)
 
     pdf_buf = _build_payslip_pdf(tenant, name, target_month, matched['birth'])
     if pdf_buf is None:
@@ -746,6 +833,8 @@ def payslip_admin(tenant):
     guard = require_tenant(tenant)
     if guard:
         return guard
+    audit.log(audit.ADMIN_VIEW, tenant=tenant, actor=session.get('tenant'),
+              detail='명세서 신청자 조회', request=request)
 
     pf = paycheck_folder(tenant)
     available_months = pay.get_available_months(pf)
@@ -802,6 +891,8 @@ def payslip_admin_download(tenant):
     guard = require_tenant(tenant)
     if guard:
         return guard
+    audit.log(audit.ADMIN_EXPORT, tenant=tenant, actor=session.get('tenant'),
+              detail='명세서 내려받기', request=request)
 
     name = request.args.get('name', '')
     target_month = request.args.get('month', '')

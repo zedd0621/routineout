@@ -47,5 +47,10 @@
     <h3>급여명세서 어드민</h3>
     <p>신청자 목록에서 개별 급여명세서 열람·다운로드</p>
   </a>
+  <a class="card tile" href="{{ url_for('tenant_audit', tenant=tenant) }}">
+    <span class="badge badge-outline">보안</span>
+    <h3>접근기록</h3>
+    <p>누가 언제 어떤 자료를 조회·내려받았는지 기록 확인</p>
+  </a>
 </div>
 {% endblock %}
