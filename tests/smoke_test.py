@@ -17,6 +17,7 @@ git은 사후 복구 수단이지 감지 수단이 아니므로, 이 파일이 �
 
 import os
 import shutil
+import sqlite3
 import sys
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -36,6 +37,7 @@ local_config.TENANTS[SMOKE_TENANT] = {
 
 import flask_app  # noqa: E402
 import payroll_engine as pay  # noqa: E402
+import rate_limit  # noqa: E402
 
 REAL_TENANTS = [t for t in local_config.TENANTS if t != SMOKE_TENANT]
 
@@ -213,6 +215,108 @@ def test_payroll_fixed_values():
 
 
 # ══════════════════════════════════════════════════════════════
+# F. 시도 횟수 제한 (Phase 0-4)
+#    ※ 실제로 잠기는지까지 확인한다. 검사 후 카운터를 반드시 초기화한다.
+# ══════════════════════════════════════════════════════════════
+TEST_IP = '127.0.0.1'
+
+
+def _stored_fail_count(scope, key):
+    conn = sqlite3.connect(rate_limit.DB_PATH)
+    row = conn.execute('SELECT fail_count FROM rate_limit WHERE scope = ? AND key = ?',
+                       (scope, key)).fetchone()
+    conn.close()
+    return row[0] if row else 0
+
+
+def _reset_all_limits():
+    for scope in ('login', 'owner', 'paycheck', 'payslip'):
+        rate_limit.clear(scope, TEST_IP)
+        for tenant in list(REAL_TENANTS) + [SMOKE_TENANT]:
+            rate_limit.clear(scope, f'{tenant}:{TEST_IP}')
+
+
+def test_rate_limit(app):
+    _reset_all_limits()
+    limit = rate_limit.MAX_ATTEMPTS
+
+    # ── 테넌트 로그인 ──
+    with app.test_client() as c:
+        for _ in range(limit - 1):
+            c.post('/login', data={'username': SMOKE_TENANT, 'password': 'wrong'})
+        allowed, _ = rate_limit.check('login', TEST_IP)
+        check(f'[제한] 로그인 {limit - 1}회 실패까지는 허용', allowed)
+
+        c.post('/login', data={'username': SMOKE_TENANT, 'password': 'wrong'})
+        allowed, retry = rate_limit.check('login', TEST_IP)
+        check(f'[제한] 로그인 {limit}회 실패 → 잠금', (not allowed) and retry > 0,
+              f'allowed={allowed}, retry={retry}s')
+
+        # 잠긴 동안에는 올바른 비밀번호도 통과하면 안 된다
+        resp = c.post('/login', data={'username': SMOKE_TENANT, 'password': SMOKE_PW})
+        ok = resp.status_code == 200  # 302면 로그인 성공한 것 = 제한 무력
+        check('[제한] 잠금 중에는 올바른 비밀번호도 거부', ok,
+              f'실제 {resp.status_code} (302면 제한이 뚫린 것)')
+        with c.session_transaction() as sess:
+            check('[제한] 잠금 중 세션 미설정', sess.get('tenant') is None)
+    rate_limit.clear('login', TEST_IP)
+
+    # ── 성공 시 누적 실패 초기화 ──
+    with app.test_client() as c:
+        c.post('/login', data={'username': SMOKE_TENANT, 'password': 'wrong'})
+        check('[제한] 실패 1회가 기록됨', _stored_fail_count('login', TEST_IP) == 1,
+              f"실제 {_stored_fail_count('login', TEST_IP)}")
+        resp = c.post('/login', data={'username': SMOKE_TENANT, 'password': SMOKE_PW})
+        check('[제한] 올바른 비밀번호 → 로그인 성공', resp.status_code == 302,
+              f'실제 {resp.status_code}')
+        check('[제한] 성공 시 누적 실패 초기화', _stored_fail_count('login', TEST_IP) == 0,
+              f"실제 {_stored_fail_count('login', TEST_IP)}")
+
+    # ── 급여조회 본인확인 (핵심: 타인 정보 반복 시도 차단) ──
+    pk_key = f'{SMOKE_TENANT}:{TEST_IP}'
+    with app.test_client() as c:
+        for _ in range(limit):
+            c.post(f'/{SMOKE_TENANT}/paycheck',
+                   data={'name': '없는사람', 'birth': '1990-01-01',
+                         'tel_last4': '0000', 'target_month': '2026-08'})
+        allowed, retry = rate_limit.check('paycheck', pk_key)
+        check(f'[제한] 급여조회 {limit}회 실패 → 잠금', (not allowed) and retry > 0,
+              f'allowed={allowed}, retry={retry}s')
+    rate_limit.clear('paycheck', pk_key)
+
+    # ── 급여명세서 조회 ──
+    ps_key = f'{SMOKE_TENANT}:{TEST_IP}'
+    with app.test_client() as c:
+        for _ in range(limit):
+            c.post(f'/{SMOKE_TENANT}/payslip',
+                   data={'name': '없는사람', 'birth': '1990-01-01',
+                         'tel_last4': '0000', 'target_month': '2026-08'})
+        allowed, _ = rate_limit.check('payslip', ps_key)
+        check(f'[제한] 명세서조회 {limit}회 실패 → 잠금', not allowed)
+    rate_limit.clear('payslip', ps_key)
+
+    # ── 대표 리드 페이지 ──
+    with app.test_client() as c:
+        for _ in range(limit):
+            c.post('/leads', data={'password': 'wrong'})
+        allowed, _ = rate_limit.check('owner', TEST_IP)
+        check(f'[제한] /leads {limit}회 실패 → 잠금', not allowed)
+    rate_limit.clear('owner', TEST_IP)
+
+    # ── 프록시 환경(X-Forwarded-For)에서 실제 클라이언트 IP를 식별하는가 ──
+    with app.test_client() as c:
+        c.post('/login', data={'username': SMOKE_TENANT, 'password': 'wrong'},
+               headers={'X-Forwarded-For': '203.0.113.9, 10.0.0.1'})
+        check('[제한] X-Forwarded-For의 첫 IP로 카운트',
+              _stored_fail_count('login', '203.0.113.9') == 1,
+              f"실제 {_stored_fail_count('login', '203.0.113.9')} "
+              f"(0이면 프록시 뒤에서 전원이 한 카운터를 공유하게 됨)")
+    rate_limit.clear('login', '203.0.113.9')
+
+    _reset_all_limits()
+
+
+# ══════════════════════════════════════════════════════════════
 # 실행
 # ══════════════════════════════════════════════════════════════
 def main():
@@ -225,7 +329,12 @@ def main():
         test_public_forms(app)
         test_admin_pages(app)
         test_payroll_fixed_values()
+        test_rate_limit(app)
     finally:
+        try:
+            _reset_all_limits()
+        except Exception:
+            pass
         # 테스트 테넌트 흔적 제거
         smoke_dir = os.path.join(BASE_DIR, 'tenant_data', SMOKE_TENANT)
         if os.path.isdir(smoke_dir):

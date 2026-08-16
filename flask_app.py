@@ -13,6 +13,7 @@ from masking import mask_name, mask_birth, mask_phone
 import payroll_engine as pay
 import recommendation_engine as rec
 import leads_db
+import rate_limit
 
 app = Flask(__name__)
 app.secret_key = SECRET_KEY
@@ -20,6 +21,7 @@ app.secret_key = SECRET_KEY
 for _slug in TENANTS:
     init_db(_slug)
 leads_db.init_db()
+rate_limit.init_db()
 
 
 def require_tenant(tenant):
@@ -74,9 +76,19 @@ def marketing_apply():
 def leads():
     if not session.get('owner_logged_in'):
         if request.method == 'POST':
+            rl_key = rate_limit.client_key(request)
+            allowed, retry_after = rate_limit.check('owner', rl_key)
+            if not allowed:
+                return render_template('leads_login.html',
+                                       error=rate_limit.lock_message(retry_after))
             if check_password_hash(OWNER_PASSWORD_HASH, request.form.get('password', '')):
+                rate_limit.clear('owner', rl_key)
                 session['owner_logged_in'] = True
                 return redirect(url_for('leads'))
+            locked_for = rate_limit.record_failure('owner', rl_key)
+            if locked_for:
+                return render_template('leads_login.html',
+                                       error=rate_limit.lock_message(locked_for))
             return render_template('leads_login.html', error='비밀번호가 일치하지 않습니다.')
         return render_template('leads_login.html', error=None)
 
@@ -115,12 +127,22 @@ def leads_logout():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
+        rl_key = rate_limit.client_key(request)
+        allowed, retry_after = rate_limit.check('login', rl_key)
+        if not allowed:
+            return render_template('login.html', error=rate_limit.lock_message(retry_after))
+
         username = request.form.get('username', '')
         password = request.form.get('password', '')
         for slug, config in TENANTS.items():
             if username == config['username'] and check_password_hash(config['password_hash'], password):
+                rate_limit.clear('login', rl_key)
                 session['tenant'] = slug
                 return redirect(url_for('tenant_dashboard', tenant=slug))
+
+        locked_for = rate_limit.record_failure('login', rl_key)
+        if locked_for:
+            return render_template('login.html', error=rate_limit.lock_message(locked_for))
         return render_template('login.html', error='아이디 또는 비밀번호가 올바르지 않습니다.')
 
     return render_template('login.html', error=None)
@@ -466,6 +488,12 @@ def paycheck(tenant):
     available_months = pay.get_available_months(pf)
 
     if request.method == 'POST':
+        rl_key = rate_limit.client_key(request, prefix=tenant)
+        allowed, retry_after = rate_limit.check('paycheck', rl_key)
+        if not allowed:
+            return render_template('paycheck.html', tenant=tenant, available_months=available_months,
+                                    error=rate_limit.lock_message(retry_after), form_data=request.form)
+
         name = request.form.get('name', '').strip()
         birth = request.form.get('birth', '').strip()
         tel_last4 = request.form.get('tel_last4', '').strip()
@@ -483,8 +511,14 @@ def paycheck(tenant):
             error = '연락처 뒤 4자리가 일치하지 않습니다.'
 
         if error:
+            locked_for = rate_limit.record_failure('paycheck', rl_key)
+            if locked_for:
+                error = rate_limit.lock_message(locked_for)
             return render_template('paycheck.html', tenant=tenant, available_months=available_months,
                                     error=error, form_data=request.form)
+
+        # 본인 확인 통과 — 누적 실패 초기화
+        rate_limit.clear('paycheck', rl_key)
 
         worklog = pay.load_worklog(pf, target_month)
         entries = worklog.get(name, [])
@@ -614,6 +648,12 @@ def payslip(tenant):
     if request.method == 'GET':
         return render_template('payslip.html', tenant=tenant, available_months=available_months, error=None)
 
+    rl_key = rate_limit.client_key(request, prefix=tenant)
+    allowed, retry_after = rate_limit.check('payslip', rl_key)
+    if not allowed:
+        return render_template('payslip.html', tenant=tenant, available_months=available_months,
+                                error=rate_limit.lock_message(retry_after), form_data=request.form)
+
     name = request.form.get('name', '').strip()
     birth_raw = request.form.get('birth', '').strip()
     tel_last4 = request.form.get('tel_last4', '').strip()
@@ -623,6 +663,7 @@ def payslip(tenant):
     matched = instructor_list.get(name)
 
     error = None
+    identity_failed = True
     if not matched:
         error = '입력하신 정보와 일치하는 강사를 찾을 수 없습니다.'
     elif pay.normalize_birth(birth_raw) != pay.normalize_birth(matched['birth']):
@@ -630,11 +671,20 @@ def payslip(tenant):
     elif not matched['tel'].endswith(tel_last4) or len(tel_last4) != 4:
         error = '연락처 뒤 4자리가 일치하지 않습니다.'
     elif not target_month:
+        # 본인 확인은 통과했고 월 선택만 빠진 경우 — 시도 횟수에 반영하지 않는다.
         error = '조회할 월을 선택해 주세요.'
+        identity_failed = False
 
     if error:
+        if identity_failed:
+            locked_for = rate_limit.record_failure('payslip', rl_key)
+            if locked_for:
+                error = rate_limit.lock_message(locked_for)
         return render_template('payslip.html', tenant=tenant, available_months=available_months,
                                 error=error, form_data=request.form)
+
+    # 본인 확인 통과 — 누적 실패 초기화
+    rate_limit.clear('payslip', rl_key)
 
     pdf_buf = _build_payslip_pdf(tenant, name, target_month, matched['birth'])
     if pdf_buf is None:
