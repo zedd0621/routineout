@@ -1,0 +1,252 @@
+"""routineout 배포 전 스모크 테스트 (Phase 0-5)
+
+목적: A 고객사 요청으로 고친 코드가 B 고객사 화면을 조용히 깨뜨리는 것을 배포 전에 잡는다.
+git은 사후 복구 수단이지 감지 수단이 아니므로, 이 파일이 그 감지 역할을 맡는다.
+
+실행:
+    cd PA && python tests/smoke_test.py
+
+전체 테넌트의 어드민 페이지까지 검사하려면 비밀번호를 넘긴다(선택):
+    SMOKE_TENANT_PASSWORDS="aiedu:비밀번호,abccompany:비밀번호" python tests/smoke_test.py
+
+비밀번호를 안 넘기면 실제 테넌트는 '익명 접근 가능 범위'만 검사하고,
+인증이 필요한 화면은 내부 생성 테스트 테넌트(__smoke__)로 검사한다.
+
+종료 코드: 전부 통과 0, 하나라도 실패 1  (배포 스크립트에서 게이트로 사용)
+"""
+
+import os
+import shutil
+import sys
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, BASE_DIR)
+
+from werkzeug.security import generate_password_hash  # noqa: E402
+
+import local_config  # noqa: E402
+
+# ── 테스트 전용 테넌트 주입 (flask_app import 전에 해야 init_db가 잡는다) ──
+SMOKE_TENANT = '__smoke__'
+SMOKE_PW = 'smoke-test-pw-1234'
+local_config.TENANTS[SMOKE_TENANT] = {
+    'username': SMOKE_TENANT,
+    'password_hash': generate_password_hash(SMOKE_PW),
+}
+
+import flask_app  # noqa: E402
+import payroll_engine as pay  # noqa: E402
+
+REAL_TENANTS = [t for t in local_config.TENANTS if t != SMOKE_TENANT]
+
+# 어드민 비밀번호를 환경변수로 넘기면 실제 테넌트도 인증 화면까지 검사한다.
+_pw_env = os.environ.get('SMOKE_TENANT_PASSWORDS', '').strip()
+TENANT_PASSWORDS = {}
+if _pw_env:
+    for pair in _pw_env.split(','):
+        if ':' in pair:
+            slug, pw = pair.split(':', 1)
+            TENANT_PASSWORDS[slug.strip()] = pw.strip()
+
+# 로그인 없이 열려야 하는 공개 폼 (강사·센터가 직접 제출하는 경로)
+PUBLIC_TENANT_PATHS = ['center', 'instructor', 'paycheck', 'payslip']
+
+# 로그인해야만 열려야 하는 관리자 화면
+ADMIN_TENANT_PATHS = [
+    'dashboard', 'center-admin', 'instructor-admin',
+    'recommendation', 'paycheck-admin', 'payslip-admin',
+]
+
+_results = []
+
+
+def check(name, condition, detail=''):
+    _results.append((name, bool(condition), detail))
+
+
+def expect_status(client, path, expected, label=None):
+    label = label or f'GET {path}'
+    try:
+        resp = client.get(path)
+    except Exception as exc:
+        check(label, False, f'예외 발생: {exc!r}')
+        return None
+    ok = resp.status_code == expected
+    check(label, ok, f'기대 {expected}, 실제 {resp.status_code}')
+    return resp
+
+
+# ══════════════════════════════════════════════════════════════
+# A. 마케팅 페이지 — 익명 접근 200
+# ══════════════════════════════════════════════════════════════
+def test_marketing_pages(app):
+    with app.test_client() as c:
+        for path in ['/', '/philosophy', '/pricing', '/live-demo', '/apply', '/login']:
+            expect_status(c, path, 200, f'[마케팅] {path} → 200')
+
+
+# ══════════════════════════════════════════════════════════════
+# B. 접근 제어 — 미인증 차단 / 없는 테넌트 404 / 테넌트 격리
+# ══════════════════════════════════════════════════════════════
+def test_access_control(app):
+    with app.test_client() as c:
+        # 미인증 상태에서 관리자 화면 → 로그인으로 리다이렉트
+        for path in ADMIN_TENANT_PATHS:
+            resp = c.get(f'/{SMOKE_TENANT}/{path}')
+            ok = resp.status_code == 302 and '/login' in resp.headers.get('Location', '')
+            check(f'[접근제어] 미인증 /{SMOKE_TENANT}/{path} → /login 리다이렉트',
+                  ok, f'실제 {resp.status_code} → {resp.headers.get("Location")}')
+
+        # 등록되지 않은 테넌트 → 404
+        expect_status(c, '/nosuchtenant/dashboard', 404, '[접근제어] 없는 테넌트 → 404')
+        expect_status(c, '/nosuchtenant/paycheck', 404, '[접근제어] 없는 테넌트 공개폼 → 404')
+
+    # 잘못된 비밀번호는 로그인되지 않는다
+    with app.test_client() as c:
+        resp = c.post('/login', data={'username': SMOKE_TENANT, 'password': 'wrong-password'})
+        check('[접근제어] 잘못된 비밀번호 → 로그인 거부',
+              resp.status_code == 200, f'실제 {resp.status_code} (리다이렉트면 인증 통과된 것)')
+        with c.session_transaction() as sess:
+            check('[접근제어] 실패 시 세션에 tenant 미설정', sess.get('tenant') is None)
+
+    # 올바른 비밀번호 → 자기 테넌트 대시보드로
+    with app.test_client() as c:
+        resp = c.post('/login', data={'username': SMOKE_TENANT, 'password': SMOKE_PW})
+        ok = resp.status_code == 302 and SMOKE_TENANT in resp.headers.get('Location', '')
+        check('[접근제어] 올바른 비밀번호 → 대시보드 리다이렉트',
+              ok, f'실제 {resp.status_code} → {resp.headers.get("Location")}')
+
+        # ★ 테넌트 격리: __smoke__로 로그인한 세션은 다른 테넌트에 접근 못 한다
+        for other in REAL_TENANTS:
+            resp = c.get(f'/{other}/paycheck-admin')
+            ok = resp.status_code == 302 and '/login' in resp.headers.get('Location', '')
+            check(f'[격리] {SMOKE_TENANT} 세션 → /{other}/paycheck-admin 차단',
+                  ok, f'실제 {resp.status_code} (200이면 고객사 데이터 유출)')
+
+
+# ══════════════════════════════════════════════════════════════
+# C. 공개 폼 — 전 테넌트에서 익명 200
+# ══════════════════════════════════════════════════════════════
+def test_public_forms(app):
+    with app.test_client() as c:
+        for tenant in list(REAL_TENANTS) + [SMOKE_TENANT]:
+            for path in PUBLIC_TENANT_PATHS:
+                expect_status(c, f'/{tenant}/{path}', 200,
+                              f'[공개폼] {tenant}/{path} → 200')
+
+
+# ══════════════════════════════════════════════════════════════
+# D. 관리자 화면 — 로그인 후 전 테넌트 200
+# ══════════════════════════════════════════════════════════════
+def _admin_pages_for(app, tenant, password):
+    with app.test_client() as c:
+        resp = c.post('/login', data={'username': tenant, 'password': password})
+        if resp.status_code != 302:
+            check(f'[어드민] {tenant} 로그인', False,
+                  f'로그인 실패 (status {resp.status_code}) — 비밀번호 확인 필요')
+            return
+        check(f'[어드민] {tenant} 로그인', True)
+        for path in ADMIN_TENANT_PATHS:
+            expect_status(c, f'/{tenant}/{path}', 200, f'[어드민] {tenant}/{path} → 200')
+
+
+def test_admin_pages(app):
+    _admin_pages_for(app, SMOKE_TENANT, SMOKE_PW)
+    for tenant in REAL_TENANTS:
+        pw = TENANT_PASSWORDS.get(tenant)
+        if pw:
+            _admin_pages_for(app, tenant, pw)
+        else:
+            check(f'[어드민] {tenant} — 건너뜀 (비밀번호 미제공)', True,
+                  'SMOKE_TENANT_PASSWORDS 환경변수로 넘기면 검사함')
+
+
+# ══════════════════════════════════════════════════════════════
+# E. 급여계산 고정값 검증 — 계산 로직이 바뀌면 즉시 잡힌다
+#    (기대값은 2026-08-16 현재 동작을 고정한 것. 의도적으로 규칙을
+#     바꿨다면 이 기대값도 같이 고쳐야 한다.)
+# ══════════════════════════════════════════════════════════════
+def _entry(date, sched_hours):
+    return {'date': date, 'sched_hours': sched_hours}
+
+
+def test_payroll_fixed_values():
+    # 15분 단위 올림
+    for seconds, expected in [(0, 0), (60, 15), (900, 15), (901, 30), (3600, 60), (-5, 0)]:
+        got = pay.ceil_15min(seconds)
+        check(f'[급여] ceil_15min({seconds}) == {expected}', got == expected, f'실제 {got}')
+
+    # 주휴수당: 주 15h 미만 미지급, 이상이면 min(주간,40)/40*8*시급
+    for hours, expected in [(14, 0), (15, 36300), (20, 48400), (45, 96800)]:
+        _, total = pay.calc_weekly_holiday([_entry('2026-08-03', hours)], '2026-08')
+        check(f'[급여] 주휴수당 주 {hours}h == {expected}원', total == expected, f'실제 {total}')
+
+    # 주휴수당 상수 자체가 바뀌면 위 기대값이 무의미해지므로 상수도 고정
+    check('[급여] WAGE_BASE == 12100', pay.WAGE_BASE == 12100, f'실제 {pay.WAGE_BASE}')
+    check('[급여] 주휴 기준시간 15h', pay.WEEKLY_HOLIDAY_MIN_HOURS == 15)
+    check('[급여] 주휴 상한 40h', pay.WEEKLY_HOLIDAY_CAP_HOURS == 40)
+
+    # 4대보험 판정: 월 소정근로 60h 경계
+    is_four, _, hrs = pay.judge_insurance([_entry('2026-08-03', 59.9)], '2026-08')
+    check('[급여] 월 59.9h → 2대보험', is_four is False, f'실제 {is_four}/{hrs}h')
+    is_four, _, hrs = pay.judge_insurance([_entry('2026-08-03', 60.0)], '2026-08')
+    check('[급여] 월 60.0h → 4대보험', is_four is True, f'실제 {is_four}/{hrs}h')
+
+    # 타 월 근무는 판정에서 제외되어야 한다
+    _, _, hrs = pay.judge_insurance(
+        [_entry('2026-08-03', 30.0), _entry('2026-07-03', 40.0)], '2026-08')
+    check('[급여] 타월 근무 제외 (30h만 집계)', hrs == 30.0, f'실제 {hrs}h')
+
+    # 생년월일 정규화
+    for raw, expected in [('1990-01-01', '19900101'), ('1990.01.01', '19900101')]:
+        got = pay.normalize_birth(raw)
+        check(f'[급여] normalize_birth({raw}) == {expected}', got == expected, f'실제 {got}')
+
+    # 만 65세 이상 고용보험 면제
+    for birth, expected in [('1960-01-01', True), ('1990-01-01', False), ('1961-09-01', False)]:
+        got = pay.is_employment_insurance_exempt_by_age(birth, '2026-08')
+        check(f'[급여] 65세 면제판정 {birth} == {expected}', got == expected, f'실제 {got}')
+
+    # 연말 경계 전월 계산
+    check("[급여] prev_month_str('2026-01') == '2025-12'",
+          pay.prev_month_str('2026-01') == '2025-12', f"실제 {pay.prev_month_str('2026-01')}")
+
+
+# ══════════════════════════════════════════════════════════════
+# 실행
+# ══════════════════════════════════════════════════════════════
+def main():
+    app = flask_app.app
+    app.config['TESTING'] = True
+
+    try:
+        test_marketing_pages(app)
+        test_access_control(app)
+        test_public_forms(app)
+        test_admin_pages(app)
+        test_payroll_fixed_values()
+    finally:
+        # 테스트 테넌트 흔적 제거
+        smoke_dir = os.path.join(BASE_DIR, 'tenant_data', SMOKE_TENANT)
+        if os.path.isdir(smoke_dir):
+            shutil.rmtree(smoke_dir, ignore_errors=True)
+
+    failed = [r for r in _results if not r[1]]
+    print('=' * 72)
+    for name, ok, detail in _results:
+        if not ok:
+            print(f'  FAIL  {name}')
+            if detail:
+                print(f'        └ {detail}')
+    print('=' * 72)
+    print(f'검사 대상 테넌트: {", ".join(REAL_TENANTS) or "(없음)"} (+ {SMOKE_TENANT})')
+    print(f'총 {len(_results)}건 · 통과 {len(_results) - len(failed)} · 실패 {len(failed)}')
+    if failed:
+        print('\n>>> 실패 항목이 있다. 배포하지 말 것.')
+        return 1
+    print('\n>>> 전부 통과. 배포 가능.')
+    return 0
+
+
+if __name__ == '__main__':
+    sys.exit(main())
