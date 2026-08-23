@@ -4,6 +4,18 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{% block title %}{{ site_name|default('Routineout') }}{% endblock %}</title>
+<meta name="description" content="{% block meta_desc %}routineout — 고객의 문제를 구조화하고 니즈에 맞춰 맞춤 시스템으로 해결합니다. 업무 자동화, 데이터 기반 의사결정, 반복업무 개선.{% endblock %}">
+<link rel="canonical" href="https://www.routineout.com{{ request.path }}">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="routineout">
+<meta property="og:title" content="{{ self.title() }}">
+<meta property="og:description" content="{{ self.meta_desc() }}">
+<meta property="og:url" content="https://www.routineout.com{{ request.path }}">
+<meta property="og:locale" content="ko_KR">
+{% block verify_meta %}{% endblock %}
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"ProfessionalService","name":"routineout","url":"https://www.routineout.com","description":"고객의 문제를 구조화하고 니즈에 맞춰 맞춤 시스템으로 해결합니다. 업무 자동화·데이터 기반 의사결정·반복업무 개선.","areaServed":"KR","knowsAbout":["업무 자동화","맞춤 시스템 구축","급여정산 시스템","데이터 분석"]}
+</script>
 <link rel="stylesheet" href="{{ url_for('static', filename='theme.css') }}">
 <style>
   .site-nav { position: relative; display: flex; justify-content: space-between; align-items: center; padding: 18px 28px; }

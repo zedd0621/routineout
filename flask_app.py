@@ -115,6 +115,38 @@ def marketing_apply():
     return render_template('marketing_apply.html')
 
 
+MARKETING_PATHS = ['/', '/philosophy', '/live-demo', '/pricing', '/apply']
+
+
+@app.route('/robots.txt')
+def robots_txt():
+    # 기본 차단 + 마케팅 페이지·정적자원만 허용.
+    # 테넌트(/<slug>/...)·로그인·leads 등 비공개/개인정보 경로는 색인 금지.
+    body = (
+        "User-agent: *\n"
+        "Disallow: /\n"
+        "Allow: /$\n"
+        "Allow: /philosophy\n"
+        "Allow: /live-demo\n"
+        "Allow: /pricing\n"
+        "Allow: /apply\n"
+        "Allow: /static/\n"
+        "Sitemap: https://www.routineout.com/sitemap.xml\n"
+    )
+    return Response(body, mimetype='text/plain')
+
+
+@app.route('/sitemap.xml')
+def sitemap_xml():
+    base = 'https://www.routineout.com'
+    urls = ''.join(
+        '<url><loc>%s%s</loc><changefreq>monthly</changefreq></url>' % (base, p)
+        for p in MARKETING_PATHS)
+    xml = ('<?xml version="1.0" encoding="UTF-8"?>'
+           '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">%s</urlset>' % urls)
+    return Response(xml, mimetype='application/xml')
+
+
 @app.route('/leads', methods=['GET', 'POST'])
 def leads():
     if not session.get('owner_logged_in'):
