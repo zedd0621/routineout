@@ -1,0 +1,48 @@
+{% extends "lawdemo/base.html" %}
+{% set active='documents' %}
+{% block title %}필요서류 안내 · 법률사무소 데모{% endblock %}
+{% block extra_css %}
+.selrow{margin-top:6px;max-width:360px;}
+.selrow label{display:block;font-size:12px;color:var(--muted);margin-bottom:8px;}
+select{width:100%;border:1px solid var(--hair);border-radius:5px;padding:12px 14px;font-size:14px;color:var(--fg);background:rgba(255,255,255,.03);font-family:inherit;}
+select:focus{outline:none;border-color:var(--gold);}
+select option{background:#15151a;color:#f3f1ea;}
+.list{margin-top:32px;border:1px solid var(--hair);border-radius:10px;overflow:hidden;max-width:760px;}
+.doc{display:flex;align-items:flex-start;gap:14px;padding:18px 22px;border-bottom:1px solid var(--hair);}
+.doc:last-child{border-bottom:none;}
+.doc .ic{width:20px;height:20px;border-radius:5px;border:1px solid var(--gold);flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;}
+.doc .dn{font-size:14.5px;font-weight:700;color:#e6e3da;line-height:1.4;}
+.doc .cond{font-size:11.5px;color:var(--muted);font-weight:400;}
+.doc .meta{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px;}
+.tag{font-size:11px;font-weight:600;border:1px solid var(--hair);color:#cfccc3;border-radius:20px;padding:3px 11px;}
+.tag.on{background:rgba(236,208,111,.12);border-color:transparent;color:var(--gold);}
+.note{margin-top:22px;border:1px solid var(--hair);border-left:2px solid var(--gold);border-radius:5px;padding:16px 20px;font-size:12.5px;color:#cfccc3;line-height:1.8;background:rgba(236,208,111,.04);max-width:760px;}
+{% endblock %}
+{% block body %}
+<div class="pagehead"><div class="wrap"><span class="eyebrow">사건 유형별 안내</span><h1>필요서류 안내</h1></div></div>
+<div class="section"><div class="wrap">
+  <div class="selrow"><label>사건 유형을 선택하세요</label>
+    <select id="ct" onchange="render()">
+      <option value="민사">민사 (대여금·손해배상)</option><option value="이혼">가사 — 이혼</option><option value="상속">가사 — 상속</option>
+      <option value="형사">형사</option><option value="행정">행정</option><option value="파산·회생">파산·회생</option>
+    </select>
+  </div>
+  <div class="list" id="list"></div>
+  <div class="note" id="note"></div>
+</div></div>
+<script>
+var D={
+ "민사":{docs:[["신분증","",1],["계약서·차용증 등 원인 서류","",0],["문자·카톡·이메일 등 증빙","",0],["상대방 인적사항(주민등록 초본 등)","소송 진행에 필요한 경우",1],["부동산 등기사항전부증명서","부동산 관련 사건인 경우",1]],src:"발급 가능한 서류는 정부24·인터넷등기소에서 온라인 발급됩니다."},
+ "이혼":{docs:[["혼인관계증명서(상세)","",1],["가족관계증명서(상세)","",1],["주민등록등본","",1],["기본증명서(자녀)","미성년 자녀가 있는 경우",1],["부동산 등기사항전부증명서","재산분할 대상이 있는 경우",1]],src:"정부24·주민센터·인터넷등기소에서 발급됩니다."},
+ "상속":{docs:[["피상속인 기본·가족관계증명서·제적등본","",1],["상속인 전원 가족관계증명서","",1],["주민등록등(초)본","",1],["부동산 등기사항전부증명서","상속재산에 부동산이 있는 경우",1],["안심상속 원스톱(재산조회) 결과","상속재산 파악용",1]],src:"정부24·주민센터·인터넷등기소에서 발급됩니다."},
+ "형사":{docs:[["신분증","",1],["고소장·수사 관련 서류","이미 있는 경우",0],["증거자료(문자·사진·영상 등)","",0],["진단서","피해가 있는 경우",0]],src:"증거자료는 사건에 따라 달라지므로 상담 시 안내됩니다."},
+ "행정":{docs:[["신분증","",1],["처분서·통지서 등 처분 관련 문서","",0],["관련 행정자료·근거 서류","",0],["이의신청·행정심판 관련 자료","선행 절차가 있었던 경우",0]],src:"처분 관련 문서는 원본 보관을 권장합니다."},
+ "파산·회생":{docs:[["신분증","",1],["채권자목록·채무 증빙","",0],["소득·재산 증빙(급여명세·통장 거래내역)","",1],["주민등록등본","",1],["가족관계증명서","",1]],src:"소득·재산 증빙은 최근 내역을 준비해 주세요. 정부24 등에서 발급됩니다."}
+};
+function render(){var d=D[document.getElementById('ct').value];
+var chk='<svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="#ecd06f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6.2l2.3 2.3 4.7-5"/></svg>';
+document.getElementById('list').innerHTML=d.docs.map(function(x){var cond=x[1]?' <span class="cond">· '+x[1]+'</span>':'';var tag=x[2]?'<span class="tag on">온라인 발급 가능</span>':'<span class="tag">본인 보관 자료</span>';return '<div class="doc"><div class="ic">'+chk+'</div><div><div class="dn">'+x[0]+cond+'</div><div class="meta">'+tag+'</div></div></div>';}).join('');
+document.getElementById('note').innerHTML='※ '+d.src+' 사건의 세부 내용에 따라 추가 서류가 필요할 수 있으며, 정확한 목록은 상담 시 안내됩니다.';}
+render();
+</script>
+{% endblock %}

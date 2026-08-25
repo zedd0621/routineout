@@ -115,6 +115,20 @@ def marketing_apply():
     return render_template('marketing_apply.html')
 
 
+@app.route('/lawfirmdemo')
+def lawfirmdemo_home():
+    return render_template('lawdemo/index.html')
+
+
+@app.route('/lawfirmdemo/<page>')
+def lawfirmdemo_page(page):
+    # 영업용 데모(공개). 허용된 페이지만 렌더, 나머지는 404.
+    allowed = {'reserve', 'process', 'documents', 'forms', 'status', 'evidence'}
+    if page not in allowed:
+        abort(404)
+    return render_template('lawdemo/%s.html' % page)
+
+
 MARKETING_PATHS = ['/', '/philosophy', '/live-demo', '/pricing', '/apply']
 
 

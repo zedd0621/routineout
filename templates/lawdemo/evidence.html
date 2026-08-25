@@ -1,0 +1,84 @@
+{% extends "lawdemo/base.html" %}
+{% set active='evidence' %}
+{% block title %}증거자료 제출 · 법률사무소 데모{% endblock %}
+{% block extra_css %}
+.lead{font-size:14px;color:var(--muted);line-height:1.8;margin-bottom:16px;max-width:720px;}
+.verified{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ok);border:1px solid rgba(127,201,138,.35);border-radius:20px;padding:6px 14px;margin-bottom:30px;}
+.step{border:1px solid var(--hair);border-radius:10px;padding:24px 26px;margin-bottom:16px;max-width:760px;}
+.step .stitle{display:flex;align-items:center;gap:11px;font-family:'Nanum Myeongjo',serif;font-size:16px;font-weight:700;margin-bottom:16px;}
+.step .num{width:24px;height:24px;border-radius:50%;background:var(--gold);color:#111;font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.devs{display:flex;gap:10px;}
+.dev{flex:1;border:1px solid var(--hair);border-radius:8px;padding:13px;text-align:center;font-size:13.5px;color:#cfccc3;cursor:pointer;background:transparent;font-family:inherit;}
+.dev.on{border-color:var(--gold);background:rgba(236,208,111,.1);color:var(--gold);font-weight:700;}
+.guide{font-size:13.5px;color:#d3d0c7;line-height:1.9;}
+.guide b{color:var(--gold);}
+.guide ol{margin:8px 0 0 18px;}
+.guide li{margin:5px 0;}
+.drop{border:1.5px dashed var(--hair);border-radius:10px;padding:38px 20px;text-align:center;color:var(--muted);font-size:13px;cursor:pointer;}
+.drop:hover{border-color:var(--gold);color:#cfccc3;}
+.file{display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid var(--hair);border-radius:7px;padding:13px 16px;margin-top:12px;}
+.file .fn{font-size:13.5px;color:#e6e3da;}
+.file .fs{font-size:11.5px;color:var(--muted);}
+.file .rm{color:var(--danger);font-size:12px;cursor:pointer;background:none;border:none;font-family:inherit;}
+.submit{margin-top:8px;width:100%;max-width:760px;padding:15px;border:none;border-radius:5px;font-size:15px;font-weight:700;background:var(--gold);color:#111;cursor:pointer;font-family:inherit;}
+.submit:hover{background:#f2d980;}
+.foot{font-size:12px;color:var(--muted);margin-top:14px;max-width:760px;line-height:1.7;}
+.done{display:none;border:1px solid var(--line);border-radius:10px;padding:32px;text-align:center;background:rgba(236,208,111,.05);max-width:760px;}
+.done h3{font-family:'Nanum Myeongjo',serif;font-size:21px;margin-bottom:10px;}
+.done p{font-size:13.5px;color:#cfccc3;line-height:1.8;}
+{% endblock %}
+{% block body %}
+<div class="pagehead"><div class="wrap"><span class="eyebrow">사건별 전용 링크</span><h1>증거자료 제출</h1></div></div>
+<div class="section"><div class="wrap">
+  <p class="lead">카카오톡 대화 등 증거자료를 직접 올리실 수 있습니다. 기기에 맞는 안내를 따라 주세요.</p>
+  <div class="verified"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#7fc98a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5 11-12"/></svg>본인확인 완료 · 2026가단12345 사건</div>
+
+  <div id="formArea">
+  <div class="step">
+    <div class="stitle"><span class="num">1</span>사용 기기를 선택하세요</div>
+    <div class="devs">
+      <button class="dev on" id="dAos" onclick="dev('aos')">Android (삼성 등)</button>
+      <button class="dev" id="dIos" onclick="dev('ios')">iPhone</button>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="stitle"><span class="num">2</span>카카오톡 대화 내보내기 방법</div>
+    <div class="guide" id="guide"></div>
+  </div>
+
+  <div class="step">
+    <div class="stitle"><span class="num">3</span>파일 첨부</div>
+    <div class="drop" onclick="addFile()">여기로 파일을 끌어다 놓거나 클릭해서 선택하세요<br><span style="font-size:11.5px;">카카오톡 대화내역 외 각종 서류(계약서·문자·사진 등)도 함께 올릴 수 있습니다</span></div>
+    <div id="files"></div>
+  </div>
+  <button class="submit" onclick="submitDemo()">제출하기</button>
+  <div class="foot">· 제출된 자료는 담당 변호사·사무관만 열람·다운로드받을 수 있습니다. (실제 사이트에서는 암호화되어 저장됩니다.)</div>
+  </div>
+
+  <div class="done" id="done">
+    <h3>제출되었습니다 (데모)</h3>
+    <p>실제 사이트에서는 제출 자료가 <b>의뢰인별로 한 곳에 모여</b> 담당자가 열람·다운로드합니다.<br>여기저기 흩어진 카톡·문자·서류를 취합하는 과정이 사라집니다.</p>
+  </div>
+</div></div>
+<script>
+var G={
+ aos:'<b>Android 기준</b> (iPhone 선택 시 자동으로 바뀝니다)<ol>'+
+     '<li>내보낼 <b>채팅방</b>에 들어갑니다</li>'+
+     '<li>오른쪽 위 ≡ 메뉴 → <b>설정(톱니바퀴)</b> 선택</li>'+
+     '<li><b>대화 내용 관리</b> → <b>대화 내보내기</b> 선택</li>'+
+     '<li>텍스트/이미지 포함으로 내보낸 파일을 아래에 첨부합니다</li></ol>',
+ ios:'<b>iPhone 기준</b><ol>'+
+     '<li>내보낼 <b>채팅방</b>에 들어갑니다</li>'+
+     '<li>오른쪽 위 메뉴 → <b>대화 내용 내보내기</b> 선택</li>'+
+     '<li><b>모든 메시지 내보내기</b> → 파일/이메일로 저장</li>'+
+     '<li>저장한 파일을 아래에 첨부합니다</li></ol>'
+};
+function dev(x){document.getElementById('dAos').classList.toggle('on',x==='aos');document.getElementById('dIos').classList.toggle('on',x==='ios');document.getElementById('guide').innerHTML=G[x];}
+dev('aos');
+var added=false;
+function addFile(){if(added)return;added=true;document.getElementById('files').innerHTML='<div class="file"><div><div class="fn">KakaoTalk_대화_20260502.txt</div><div class="fs">1.2 MB</div></div><button class="rm" onclick="rmFile()">삭제</button></div>';}
+function rmFile(){added=false;document.getElementById('files').innerHTML='';}
+function submitDemo(){document.getElementById('formArea').style.display='none';var d=document.getElementById('done');d.style.display='block';d.scrollIntoView({behavior:'smooth',block:'center'});}
+</script>
+{% endblock %}

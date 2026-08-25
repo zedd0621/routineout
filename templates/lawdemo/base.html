@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}법률사무소 홈페이지 데모 · routineout{% endblock %}</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700;800&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0b0b0c;--bg2:#101012;--fg:#f3f1ea;--muted:#9a978d;--gold:#ecd06f;--gold-d:#c9a84b;--line:rgba(236,208,111,.18);--hair:rgba(255,255,255,.09);--ok:#7fc98a;--danger:#e08a8a;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--fg);font-family:'Noto Sans KR',sans-serif;line-height:1.7;word-break:keep-all;}
+.serif{font-family:'Nanum Myeongjo',Georgia,serif;}
+.wrap{max-width:1120px;margin:0 auto;padding:0 40px;}
+a{color:inherit;text-decoration:none;}
+/* demo banner */
+.demobar{background:linear-gradient(90deg,#1a1710,#221d10);border-bottom:1px solid var(--line);font-size:12px;color:#e8dca9;text-align:center;padding:9px 16px;letter-spacing:.02em;}
+.demobar b{color:var(--gold);}
+.demobar a{color:var(--gold);text-decoration:underline;text-underline-offset:2px;}
+.nav{position:relative;display:flex;align-items:center;justify-content:space-between;padding:22px 40px;z-index:20;border-bottom:1px solid var(--hair);}
+.brand{display:flex;flex-direction:column;gap:2px;}
+.brand .kr{font-family:'Nanum Myeongjo',serif;font-size:19px;font-weight:800;letter-spacing:.02em;}
+.brand .en{font-size:9px;letter-spacing:.32em;color:var(--gold);font-weight:500;}
+.menu{display:flex;gap:20px;align-items:center;flex-wrap:wrap;}
+.menu a{font-size:11.5px;letter-spacing:.1em;color:#d8d5cc;font-weight:500;white-space:nowrap;}
+.menu a:hover,.menu a.active{color:var(--gold);}
+.navtoggle{display:none;background:transparent;border:1px solid var(--hair);border-radius:6px;width:42px;height:42px;color:var(--fg);cursor:pointer;align-items:center;justify-content:center;}
+.pagehead{padding:60px 0 10px;border-bottom:1px solid var(--hair);}
+.eyebrow{font-size:11px;letter-spacing:.3em;color:var(--gold);font-weight:600;}
+.pagehead h1{font-family:'Nanum Myeongjo',serif;font-weight:700;font-size:32px;margin:14px 0 22px;}
+.section{padding:60px 0;}
+.disclaimer{margin-top:22px;border:1px solid var(--hair);border-left:2px solid var(--gold);border-radius:5px;padding:16px 20px;font-size:12.5px;color:#cfccc3;line-height:1.8;background:rgba(236,208,111,.04);}
+.footer{padding:44px 0;border-top:1px solid var(--hair);margin-top:40px;}
+.footer .fbrand .kr{font-family:'Nanum Myeongjo',serif;font-size:16px;font-weight:800;}
+.footer .made{font-size:12px;color:var(--muted);margin-top:14px;line-height:1.9;}
+.footer .made a{color:var(--gold);}
+.btn-gold{display:inline-flex;align-items:center;gap:12px;border:1px solid var(--gold);color:var(--gold);padding:13px 28px;font-size:12.5px;letter-spacing:.14em;border-radius:2px;cursor:pointer;background:transparent;font-family:inherit;}
+.btn-gold:hover{background:var(--gold);color:#111;}
+@media(max-width:880px){
+  .wrap{padding:0 22px;}
+  .nav{padding:16px 22px;}
+  .navtoggle{display:flex;}
+  .menu{display:none;flex-direction:column;align-items:stretch;gap:0;position:absolute;top:100%;left:0;right:0;background:#0d0d0f;border-top:1px solid var(--hair);border-bottom:1px solid var(--hair);padding:6px 0;z-index:40;}
+  .menu.open{display:flex;}
+  .menu a{padding:14px 24px;border-bottom:1px solid rgba(255,255,255,.05);font-size:13px;}
+  .pagehead{padding:40px 0 6px;}.pagehead h1{font-size:24px;}.section{padding:42px 0;}
+}
+{% block extra_css %}{% endblock %}
+</style>
+</head>
+<body>
+<div class="demobar">이 페이지는 <b>routineout 데모</b>입니다 — 실제로는 <b>귀 사무소 이름·정보</b>로 구축됩니다. · <a href="https://www.routineout.com">routineout.com</a></div>
+<div class="nav">
+  <a href="/lawfirmdemo" class="brand"><span class="kr">○○ 법률사무소</span><span class="en">SAMPLE LAW OFFICE</span></a>
+  <button class="navtoggle" id="navToggle" aria-label="메뉴 열기">
+    <svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 4h12M2 8h12M2 12h12"/></svg>
+  </button>
+  <div class="menu" id="navMenu">
+    <a href="/lawfirmdemo/reserve" class="{{ 'active' if active=='reserve' }}">상담 예약</a>
+    <a href="/lawfirmdemo/process" class="{{ 'active' if active=='process' }}">절차·비용</a>
+    <a href="/lawfirmdemo/documents" class="{{ 'active' if active=='documents' }}">필요서류</a>
+    <a href="/lawfirmdemo/forms" class="{{ 'active' if active=='forms' }}">서류 발급</a>
+    <a href="/lawfirmdemo/status" class="{{ 'active' if active=='status' }}">진행상황 조회</a>
+    <a href="/lawfirmdemo/evidence" class="{{ 'active' if active=='evidence' }}">증거자료 제출</a>
+  </div>
+</div>
+
+{% block body %}{% endblock %}
+
+<div class="footer"><div class="wrap">
+  <div class="fbrand"><div class="kr">○○ 법률사무소</div></div>
+  <div class="made">이 사이트는 <a href="https://www.routineout.com">routineout</a>이 제작한 <b>법률사무소 홈페이지 데모</b>입니다.
+    상담예약·진행상황 조회·증거자료 제출 등은 실제 작동 예시이며, 귀 사무소에 맞춰 구성·수정해 드립니다.<br>
+    제작 문의: <a href="https://www.routineout.com">routineout.com</a></div>
+</div></div>
+
+<script>
+(function(){var t=document.getElementById('navToggle'),m=document.getElementById('navMenu');
+if(t&&m)t.addEventListener('click',function(){m.classList.toggle('open');});})();
+</script>
+</body>
+</html>

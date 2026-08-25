@@ -1,0 +1,55 @@
+{% extends "lawdemo/base.html" %}
+{% set active='process' %}
+{% block title %}절차·비용 안내 · 법률사무소 데모{% endblock %}
+{% block extra_css %}
+.selrow{margin-top:6px;max-width:360px;}
+.selrow label{display:block;font-size:12px;color:var(--muted);margin-bottom:8px;}
+select{width:100%;border:1px solid var(--hair);border-radius:5px;padding:12px 14px;font-size:14px;color:var(--fg);background:rgba(255,255,255,.03);font-family:inherit;}
+select:focus{outline:none;border-color:var(--gold);}
+select option{background:#15151a;color:#f3f1ea;}
+.cols{display:grid;grid-template-columns:1.1fr 1fr;gap:18px;margin-top:34px;}
+.panel{border:1px solid var(--hair);border-radius:10px;padding:26px 28px;}
+.panel h3{font-family:'Nanum Myeongjo',serif;font-size:17px;font-weight:700;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;gap:8px;}
+.panel h3 .badge{font-size:11px;font-weight:700;background:var(--gold);color:#111;border-radius:20px;padding:3px 11px;white-space:nowrap;}
+.pstep{position:relative;padding:0 0 18px 26px;}
+.pstep:before{content:'';position:absolute;left:6px;top:16px;bottom:-2px;width:1px;background:var(--hair);}
+.pstep:last-child:before{display:none;}
+.pstep .d{position:absolute;left:0;top:4px;width:13px;height:13px;border-radius:50%;background:var(--bg);border:1.5px solid var(--gold);}
+.pstep .t{font-size:14.5px;font-weight:600;color:#e6e3da;}
+.pstep .s{font-size:12.5px;color:var(--muted);margin-top:2px;line-height:1.5;}
+.crow{display:flex;justify-content:space-between;align-items:flex-start;padding:15px 0;border-bottom:1px solid var(--hair);}
+.crow:last-child{border-bottom:none;}
+.crow .cl{font-size:14px;font-weight:700;color:#e6e3da;}
+.crow .cd{font-size:12px;color:var(--muted);margin-top:3px;max-width:230px;line-height:1.5;}
+.crow .cv{font-size:12.5px;color:var(--gold-d);font-weight:600;white-space:nowrap;padding-left:12px;}
+@media(max-width:880px){.cols{grid-template-columns:1fr;}}
+{% endblock %}
+{% block body %}
+<div class="pagehead"><div class="wrap"><span class="eyebrow">일반 안내 · 확정 견적 아님</span><h1>절차·비용 안내</h1></div></div>
+<div class="section"><div class="wrap">
+  <div class="selrow"><label>사건 유형을 선택하세요</label>
+    <select id="ct" onchange="render()">
+      <option value="민사">민사</option><option value="형사">형사</option>
+      <option value="가사">가사 (이혼·상속)</option><option value="행정">행정</option><option value="파산·회생">파산·회생</option>
+    </select>
+  </div>
+  <div class="cols">
+    <div class="panel"><h3><span>일반적인 진행 절차</span><span class="badge" id="dur"></span></h3><div id="steps"></div></div>
+    <div class="panel"><h3>비용 구성</h3><div id="cost"></div></div>
+  </div>
+  <div class="disclaimer">※ 위 내용은 이해를 돕기 위한 <b>일반적인 안내</b>이며, 사건의 구체적 사정에 따라 절차·기간·비용이 달라질 수 있습니다. <b>확정 견적이 아니며</b>, 정확한 내용은 상담을 통해 안내됩니다.</div>
+</div></div>
+<script>
+var DATA={
+ "민사":{dur:"예상 6~12개월",steps:[["상담 · 사건 수임","사실관계 확인, 위임계약 체결"],["소장 접수","관할 법원에 소장 제출"],["답변서 · 준비서면","상대방 답변, 쟁점 정리"],["변론기일","주장·증거 제출, 심리"],["판결 선고","필요 시 항소 검토"]],cost:[["착수금","위임 시 지급하는 기본 비용","사건별 상이"],["성공보수","결과에 따라 약정 비율","약정 %"],["실비","인지대·송달료 등","실비 정산"]]},
+ "형사":{dur:"예상 4~10개월",steps:[["상담 · 선임","사건 파악, 변호인 선임"],["수사 대응","경찰·검찰 조사 동행·대응"],["기소 여부 결정","불기소 또는 기소"],["공판(1심)","증거조사·변론"],["선고","필요 시 항소 검토"]],cost:[["착수금","선임 시 기본 비용","사건별 상이"],["성공보수","결과에 따라 약정","약정"],["실비","송달료 등","실비 정산"]]},
+ "가사":{dur:"예상 6~12개월",steps:[["상담 · 사건 수임","사실관계·쟁점 확인"],["조정 / 심판청구","협의·조정 또는 소장·심판청구"],["조정기일","법원 조정 절차"],["변론기일","주장·증거 제출"],["판결 · 심판","필요 시 항소 검토"]],cost:[["착수금","위임 시 기본 비용","사건별 상이"],["성공보수","재산분할·위자료 등 반영","약정 %"],["실비","인지대·송달료 등","실비 정산"]]},
+ "행정":{dur:"예상 8~14개월",steps:[["상담 · 사건 수임","처분 내용·위법성 검토"],["행정심판 검토","필요 시 심판 선행"],["소장 접수","관할 행정법원 제출"],["변론기일","주장·증거 제출"],["판결 선고","필요 시 항소 검토"]],cost:[["착수금","위임 시 기본 비용","사건별 상이"],["성공보수","처분 취소 등 반영","약정"],["실비","인지대·송달료 등","실비 정산"]]},
+ "파산·회생":{dur:"개시 4~6개월",steps:[["상담 · 사건 수임","채무·재산 상황 진단"],["서류 준비","채권자목록·소득·재산 정리"],["신청서 접수","법원에 파산·회생 신청"],["보정 · 심문","법원 보정 요구 대응"],["결정","면책 / 인가 결정"]],cost:[["착수금","위임 시 기본 비용","사건별 상이"],["실비","송달료·예납금 등","실비 정산"]]}
+};
+function render(){var d=DATA[document.getElementById('ct').value];document.getElementById('dur').textContent=d.dur;
+document.getElementById('steps').innerHTML=d.steps.map(function(s){return '<div class="pstep"><div class="d"></div><div class="t">'+s[0]+'</div><div class="s">'+s[1]+'</div></div>';}).join('');
+document.getElementById('cost').innerHTML=d.cost.map(function(c){return '<div class="crow"><div><div class="cl">'+c[0]+'</div><div class="cd">'+c[1]+'</div></div><div class="cv">'+c[2]+'</div></div>';}).join('');}
+render();
+</script>
+{% endblock %}

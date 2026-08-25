@@ -1,0 +1,87 @@
+{% extends "lawdemo/base.html" %}
+{% set active='forms' %}
+{% block title %}서류 발급·자동 생성 · 법률사무소 데모{% endblock %}
+{% block extra_css %}
+.lead{font-size:14px;color:var(--muted);line-height:1.8;margin-bottom:30px;max-width:720px;}
+.cols{display:grid;grid-template-columns:1fr 1.1fr;gap:20px;}
+.panel{border:1px solid var(--hair);border-radius:10px;padding:26px 28px;}
+.panel h3{font-family:'Nanum Myeongjo',serif;font-size:17px;font-weight:700;margin-bottom:18px;}
+label.fl{display:block;font-size:12.5px;font-weight:600;color:#d8d5cc;margin:14px 0 7px;}
+input,select{width:100%;border:1px solid var(--hair);border-radius:5px;padding:11px 13px;font-size:13.5px;color:var(--fg);background:rgba(255,255,255,.03);font-family:inherit;}
+input:focus,select:focus{outline:none;border-color:var(--gold);}
+select option{background:#15151a;color:#f3f1ea;}
+.gen{width:100%;margin-top:20px;padding:13px;border:none;border-radius:5px;font-size:14px;font-weight:700;background:var(--gold);color:#111;cursor:pointer;font-family:inherit;}
+.gen:hover{background:#f2d980;}
+.preview{background:#f6f4ee;color:#1c1c1c;border-radius:8px;padding:34px 36px;min-height:420px;font-family:'Nanum Myeongjo',serif;line-height:2;}
+.preview h2{text-align:center;font-size:24px;letter-spacing:.3em;margin-bottom:26px;font-weight:800;}
+.preview .prow{margin:9px 0;font-size:14px;}
+.preview .prow b{display:inline-block;min-width:92px;color:#555;font-weight:700;}
+.preview .body{margin:22px 0;font-size:13.5px;line-height:1.95;}
+.preview .sign{margin-top:34px;text-align:right;font-size:13.5px;line-height:2.2;}
+.dl{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:15px 18px;border-bottom:1px solid var(--hair);}
+.dl:last-child{border-bottom:none;}
+.dl .dn{font-size:14px;color:#e6e3da;font-weight:600;}
+.dl .dt{font-size:11.5px;color:var(--muted);margin-top:2px;}
+.dlbtn{font-size:12px;color:var(--gold);border:1px solid var(--line);border-radius:5px;padding:7px 14px;white-space:nowrap;cursor:pointer;background:transparent;font-family:inherit;}
+.dlbtn:hover{background:rgba(236,208,111,.1);}
+@media(max-width:880px){.cols{grid-template-columns:1fr;}.preview{min-height:auto;}}
+{% endblock %}
+{% block body %}
+<div class="pagehead"><div class="wrap"><span class="eyebrow">서류 발급</span><h1>서류 발급 · 자동 생성</h1></div></div>
+<div class="section"><div class="wrap">
+  <p class="lead">자주 쓰는 서류 양식을 내려받고, 몇 가지 정보만 입력하면 <b>서류 초안이 자동으로 완성</b>됩니다. 반복 타이핑과 양식 실수를 줄여 사무 업무를 자동화합니다.</p>
+
+  <div class="cols">
+    <div class="panel">
+      <h3>① 자동 서류 생성</h3>
+      <label class="fl">서류 종류</label>
+      <select id="kind" onchange="gen()"><option value="위임장">소송위임장</option><option value="동의서">개인정보 수집·이용 동의서</option></select>
+      <label class="fl">의뢰인(위임인) 성함</label><input id="name" value="홍길동" oninput="gen()">
+      <label class="fl">주소</label><input id="addr" value="서울 성북구 ○○로 12" oninput="gen()">
+      <label class="fl">사건 표시</label><input id="case" value="2026가단12345 대여금" oninput="gen()">
+      <label class="fl">수임 변호사</label><input id="lawyer" value="김변호 변호사" oninput="gen()">
+      <button class="gen" onclick="gen()">서류 초안 생성 ↻</button>
+    </div>
+
+    <div class="preview" id="pv"></div>
+  </div>
+
+  <div class="panel" style="margin-top:20px;">
+    <h3>② 양식 다운로드</h3>
+    <div class="dl"><div><div class="dn">소송위임장 (한글 양식)</div><div class="dt">HWP · 민사·가사 공용</div></div><button class="dlbtn" onclick="demoDL()">다운로드</button></div>
+    <div class="dl"><div><div class="dn">개인정보 수집·이용 동의서</div><div class="dt">PDF · 상담·수임용</div></div><button class="dlbtn" onclick="demoDL()">다운로드</button></div>
+    <div class="dl"><div><div class="dn">사실확인서 양식</div><div class="dt">HWP</div></div><button class="dlbtn" onclick="demoDL()">다운로드</button></div>
+    <div class="dl"><div><div class="dn">지급명령 신청서 양식</div><div class="dt">HWP · 민사</div></div><button class="dlbtn" onclick="demoDL()">다운로드</button></div>
+  </div>
+  <div class="disclaimer">※ 데모입니다. 실제 사이트에서는 생성된 초안을 <b>PDF/HWP로 즉시 내려받기</b>가 되고, 사무소가 쓰는 양식·문구·직인 위치에 맞춰 제작합니다.</div>
+</div></div>
+
+<script>
+function esc(s){return (s||'').replace(/[&<>]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;'}[c];});}
+function gen(){
+  var k=document.getElementById('kind').value;
+  var n=esc(document.getElementById('name').value),a=esc(document.getElementById('addr').value),
+      c=esc(document.getElementById('case').value),l=esc(document.getElementById('lawyer').value);
+  var today=new Date();var ymd=today.getFullYear()+'.  '+(today.getMonth()+1)+'.  '+today.getDate()+'.';
+  var html='';
+  if(k==='위임장'){
+    html='<h2>위 임 장</h2>'+
+    '<div class="prow"><b>위 임 인</b> '+n+' (인)</div>'+
+    '<div class="prow"><b>주 소</b> '+a+'</div>'+
+    '<div class="prow"><b>사 건</b> '+c+'</div>'+
+    '<div class="prow"><b>수임 변호사</b> '+l+'</div>'+
+    '<div class="body">위 위임인은 위 사건에 관하여 위 변호사를 소송대리인으로 선임하고, 소의 제기·취하, 청구의 인낙·포기, 화해, 상소의 제기 및 취하 등 일체의 소송행위를 위임합니다.</div>'+
+    '<div class="sign">'+ymd+'<br>위 위임인 '+n+' (인)</div>';
+  }else{
+    html='<h2>개인정보 수집·이용 동의서</h2>'+
+    '<div class="prow"><b>성 명</b> '+n+'</div>'+
+    '<div class="prow"><b>주 소</b> '+a+'</div>'+
+    '<div class="body">1. 수집 항목: 성명, 연락처, 주소, 사건 관련 정보<br>2. 수집·이용 목적: 법률상담 및 사건 처리<br>3. 보유 기간: 사건 종결 후 관계 법령에 따른 기간<br><br>본인은 위 내용에 따라 개인정보를 수집·이용하는 데 동의합니다.</div>'+
+    '<div class="sign">'+ymd+'<br>동의자 '+n+' (인)</div>';
+  }
+  document.getElementById('pv').innerHTML=html;
+}
+function demoDL(){alert('데모입니다. 실제 사이트에서는 이 자리에서 양식 파일이 바로 다운로드됩니다.');}
+gen();
+</script>
+{% endblock %}

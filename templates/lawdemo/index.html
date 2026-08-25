@@ -1,0 +1,40 @@
+{% extends "lawdemo/base.html" %}
+{% block title %}법률사무소 홈페이지 데모 · routineout{% endblock %}
+{% block extra_css %}
+.hero{padding:70px 0 40px;}
+.hero .eyebrow{font-size:11px;letter-spacing:.3em;color:var(--gold);font-weight:600;}
+.hero h1{font-family:'Nanum Myeongjo',serif;font-size:38px;font-weight:700;line-height:1.35;margin:16px 0 18px;}
+.hero p{font-size:15px;color:#cfccc3;max-width:640px;line-height:1.9;}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:16px;}
+.card{display:block;border:1px solid var(--hair);border-radius:12px;padding:26px 24px;transition:border-color .15s,transform .15s;}
+.card:hover{border-color:var(--gold);transform:translateY(-2px);}
+.card .n{font-size:11px;letter-spacing:.14em;color:var(--gold);font-weight:700;}
+.card h3{font-family:'Nanum Myeongjo',serif;font-size:19px;font-weight:700;margin:12px 0 10px;}
+.card p{font-size:13px;color:var(--muted);line-height:1.7;}
+.card .go{margin-top:16px;font-size:12px;letter-spacing:.1em;color:var(--gold);}
+.tagrow{display:flex;gap:8px;margin-top:22px;flex-wrap:wrap;}
+.tagrow span{font-size:11px;border:1px solid var(--hair);border-radius:20px;padding:5px 13px;color:#cfccc3;}
+@media(max-width:880px){.hero h1{font-size:27px;}.grid{grid-template-columns:1fr;}}
+{% endblock %}
+{% block body %}
+<div class="wrap hero">
+  <div class="eyebrow">LAW OFFICE WEBSITE · DEMO</div>
+  <h1>블로그를 넘어,<br>사무소의 격을 갖춘 공식 홈페이지.</h1>
+  <p>단순 소개 페이지가 아닙니다. 상담 예약·진행상황 조회·증거자료 제출까지 —
+     사무관님의 반복 업무를 줄이고, 의뢰인에게는 신뢰를 주는 기능을 갖춘 홈페이지 예시입니다.
+     아래 메뉴는 모두 실제로 작동합니다. 눌러 보세요.</p>
+  <div class="tagrow"><span>반응형·모바일 최적화</span><span>네이버·구글 검색등록</span><span>관리자 페이지 포함</span><span>맞춤 제작</span></div>
+</div>
+
+<div class="section" style="padding-top:20px;"><div class="wrap">
+  <div class="grid">
+    <a class="card" href="/lawfirmdemo/reserve"><div class="n">01</div><h3>온라인 상담 예약</h3><p>사건 유형별 문진과 희망 일정을 미리 받아, 전화로 놓치던 상담 문의를 자동으로 모읍니다.</p><div class="go">둘러보기 →</div></a>
+    <a class="card" href="/lawfirmdemo/process"><div class="n">02</div><h3>절차·비용 안내</h3><p>사건 유형을 선택하면 일반적인 진행 절차와 비용 구성을 바로 안내합니다.</p><div class="go">둘러보기 →</div></a>
+    <a class="card" href="/lawfirmdemo/documents"><div class="n">03</div><h3>필요서류 안내</h3><p>사건별 준비 서류와 발급처를 미리 안내해 상담·수임을 매끄럽게 합니다.</p><div class="go">둘러보기 →</div></a>
+    <a class="card" href="/lawfirmdemo/forms"><div class="n">04</div><h3>서류 발급·자동 생성</h3><p>위임장 등 양식을 내려받고, 정보만 입력하면 서류 초안이 자동으로 만들어집니다.</p><div class="go">둘러보기 →</div></a>
+    <a class="card" href="/lawfirmdemo/status"><div class="n">05</div><h3>사건 진행상황 조회</h3><p>의뢰인이 본인 사건의 진행 단계를 직접 확인 — 반복되는 진행문의 응대를 줄입니다.</p><div class="go">둘러보기 →</div></a>
+    <a class="card" href="/lawfirmdemo/evidence"><div class="n">06</div><h3>증거자료 제출</h3><p>카톡·문자·서류를 의뢰인별로 한 곳에 모아 관리·다운로드. 흩어진 자료 취합이 사라집니다.</p><div class="go">둘러보기 →</div></a>
+  </div>
+  <div class="disclaimer">※ 위 기능은 예시이며, 원하시는 기능만 골라 넣거나 새 기능을 추가해 <b>귀 사무소에 맞춰 제작</b>합니다. 실제 사이트에는 귀 사무소의 이름·연락처·전문분야가 반영됩니다.</div>
+</div></div>
+{% endblock %}

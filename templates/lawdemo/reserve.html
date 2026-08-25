@@ -1,0 +1,80 @@
+{% extends "lawdemo/base.html" %}
+{% set active='reserve' %}
+{% block title %}온라인 상담 예약 · 법률사무소 데모{% endblock %}
+{% block extra_css %}
+.form-wrap{max-width:680px;margin:0 auto;}
+.intro{font-size:14px;color:var(--muted);line-height:1.8;margin-bottom:28px;}
+.card{border:1px solid var(--hair);border-radius:8px;padding:30px 32px;background:rgba(255,255,255,.015);}
+.field{margin-bottom:22px;}
+label.fl{display:block;font-size:13px;font-weight:600;color:#d8d5cc;margin-bottom:9px;}
+.req{color:var(--gold);margin-left:3px;}
+input[type=text],input[type=tel],input[type=email],textarea,select{width:100%;border:1px solid var(--hair);border-radius:5px;padding:12px 14px;font-size:14px;color:var(--fg);background:rgba(255,255,255,.03);font-family:inherit;}
+input:focus,textarea:focus,select:focus{outline:none;border-color:var(--gold);}
+select option{background:#15151a;color:#f3f1ea;}
+textarea{min-height:110px;resize:vertical;line-height:1.7;}
+.dtsel{display:grid;grid-template-columns:1.1fr 1fr 1fr 1fr;gap:8px;}
+.chips{display:flex;flex-wrap:wrap;gap:10px;}
+.chip{display:flex;align-items:center;gap:8px;border:1px solid var(--hair);border-radius:20px;padding:9px 15px;font-size:13px;color:#cfccc3;cursor:pointer;}
+.chip input{accent-color:var(--gold);}
+.hint{font-size:11.5px;color:var(--muted);margin-top:7px;line-height:1.6;}
+.submit{width:100%;margin-top:6px;padding:15px;border:none;border-radius:5px;font-size:15px;font-weight:700;background:var(--gold);color:#111;cursor:pointer;font-family:inherit;}
+.submit:hover{background:#f2d980;}
+.done{display:none;border:1px solid var(--line);border-radius:10px;padding:34px 32px;text-align:center;background:rgba(236,208,111,.05);}
+.done .ic{width:54px;height:54px;border-radius:50%;border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;}
+.done h3{font-family:'Nanum Myeongjo',serif;font-size:22px;margin-bottom:10px;}
+.done p{font-size:13.5px;color:#cfccc3;line-height:1.8;}
+@media(max-width:880px){.dtsel{grid-template-columns:1fr 1fr;}}
+{% endblock %}
+{% block body %}
+<div class="pagehead"><div class="wrap"><span class="eyebrow">상담 예약</span><h1>온라인 상담 예약</h1></div></div>
+<div class="section"><div class="wrap form-wrap">
+  <p class="intro">상담 전 아래 내용을 미리 남겨 주시면, 상담 시간을 사건 내용에 더 집중할 수 있습니다. 작성 내용은 담당 변호사만 열람합니다.</p>
+
+  <form class="card" id="f" onsubmit="return submitDemo(event)">
+    <div class="field"><label class="fl">성함<span class="req">*</span></label><input type="text" required></div>
+    <div class="field"><label class="fl">연락처<span class="req">*</span></label><input type="tel" placeholder="010-0000-0000" required></div>
+    <div class="field"><label class="fl">사건 종류<span class="req">*</span></label>
+      <select id="caseType" required onchange="updatePos()">
+        <option value="">선택해 주세요</option>
+        <option>민사</option><option>형사</option><option>가사</option><option>행정</option><option>파산·회생</option><option>기타</option>
+      </select>
+    </div>
+    <div class="field"><label class="fl">본인의 입장</label>
+      <select id="posSel"><option value="">사건 종류를 먼저 선택해 주세요</option></select>
+    </div>
+    <div class="field"><label class="fl">사건 경위<span class="req">*</span></label>
+      <textarea placeholder="언제, 누구와, 어떤 일이 있었는지 편하게 적어 주세요." required></textarea>
+    </div>
+    <div class="field"><label class="fl">보유 자료</label>
+      <div class="chips">
+        <label class="chip"><input type="checkbox">계약서</label>
+        <label class="chip"><input type="checkbox">문자·카톡</label>
+        <label class="chip"><input type="checkbox">사진·영상</label>
+        <label class="chip"><input type="checkbox">없음</label>
+      </div>
+    </div>
+    <div class="field"><label class="fl">대면상담 희망일정</label>
+      <div class="dtsel">
+        <select id="pY"></select><select id="pM"></select><select id="pD"></select><select id="pH"></select>
+      </div>
+      <div class="hint">확정은 상담 회신 시 조율됩니다. (선택)</div>
+    </div>
+    <button type="submit" class="submit">상담 예약 제출하기</button>
+  </form>
+
+  <div class="done" id="done">
+    <div class="ic"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#ecd06f" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5 11-12"/></svg></div>
+    <h3>접수되었습니다 (데모)</h3>
+    <p>실제 사이트에서는 이 내용이 <b>관리자 페이지에 자동 저장</b>되고, 담당자에게 <b>새 상담 알림</b>이 갑니다.<br>엑셀로 한 번에 내려받을 수도 있습니다.</p>
+  </div>
+</div></div>
+
+<script>
+var POS={"민사":["원고(청구하는 쪽)","피고(청구받는 쪽)","아직 모름"],"형사":["고소인·피해자","피의자·피고인","아직 모름"],"가사":["청구인","상대방","아직 모름"],"행정":["원고(처분 받은 쪽)","피고(처분청)","아직 모름"],"파산·회생":["신청인(본인)","채권자","아직 모름"],"기타":["직접 상담","아직 모름"]};
+function updatePos(){var t=document.getElementById('caseType').value,s=document.getElementById('posSel');if(!t){s.innerHTML='<option value="">사건 종류를 먼저 선택해 주세요</option>';return;}s.innerHTML='<option value="">선택해 주세요</option>';POS[t].forEach(function(o){s.innerHTML+='<option>'+o+'</option>';});}
+(function(){var y=new Date().getFullYear();function fill(id,items,ph){var el=document.getElementById(id);el.innerHTML='<option value="">'+ph+'</option>';items.forEach(function(v){el.innerHTML+='<option>'+v+'</option>';});}
+var yrs=[],ms=[],ds=[],hs=[];for(var j=y;j<=y+1;j++)yrs.push(j);for(var m=1;m<=12;m++)ms.push(m+'월');for(var d=1;d<=31;d++)ds.push(d+'일');for(var h=9;h<=18;h++)hs.push(h+'시');
+fill('pY',yrs,'년');fill('pM',ms,'월');fill('pD',ds,'일');fill('pH',hs,'시');})();
+function submitDemo(e){e.preventDefault();document.getElementById('f').style.display='none';var d=document.getElementById('done');d.style.display='block';d.scrollIntoView({behavior:'smooth',block:'center'});return false;}
+</script>
+{% endblock %}
